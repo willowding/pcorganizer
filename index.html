@@ -1,2206 +1,865 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>PicReview</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PC Organizer · 智能文件整理工具</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:#f0f2f5;color:#222;min-height:100vh}
-header{background:#1a73e8;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
-header h1{font-size:1.2rem;flex:1;cursor:pointer}
-#roleLabel{background:rgba(255,255,255,.2);border-radius:20px;padding:4px 6px 4px 14px;font-size:.85rem;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
-#logoutBtn{background:#fff;color:#1a73e8;border:none;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:.85rem;font-weight:600}
-main{padding:24px}
-.back-bar{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.btn-back{background:#fff;border:2px solid #1a73e8;color:#1a73e8;border-radius:20px;padding:6px 18px;cursor:pointer;font-size:.88rem;font-weight:600}
-.btn-back:hover{background:#e8f0fe}
-.btn-import-table{background:#1a73e8;color:#fff;border:none;border-radius:20px;padding:6px 18px;cursor:pointer;font-size:.88rem;font-weight:600}
-.btn-import-table:hover{background:#1558b0}
-.btn-import-table.secondary{background:#fff;color:#666;border:2px solid #ccc;padding:4px 14px;font-weight:500}
-.btn-import-table.secondary:hover{border-color:#dc3545;color:#dc3545}
-.project-title{font-size:1.2rem;font-weight:700}
-.projects-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.projects-header h2{font-size:1.1rem;font-weight:700}
-.btn-new-folder{background:#1a73e8;color:#fff;border:none;border-radius:20px;padding:6px 18px;cursor:pointer;font-size:.88rem;font-weight:600}
-.btn-new-folder:hover{background:#1558b0}
-.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:32px}
-.folder-card{background:#fff;border-radius:12px;padding:20px 18px;box-shadow:0 2px 8px rgba(0,0,0,.1);cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;gap:8px}
-.folder-card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
-.folder-card .folder-icon{font-size:2rem}
-.folder-card .folder-name{font-weight:700;font-size:1rem;word-break:break-all}
-.folder-card .folder-meta{font-size:.78rem;color:#888}
-.folder-card .folder-stats{display:flex;gap:6px;flex-wrap:wrap}
-.folder-card{position:relative}
-.projects-search{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-.projects-search input{flex:1;min-width:160px;padding:8px 14px;border:1px solid #ccc;border-radius:20px;font-size:.9rem;font-family:inherit}
-.projects-search input:focus{outline:none;border-color:#1a73e8}
-.filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
-.filter-bar button{padding:6px 18px;border:2px solid #ccc;background:#fff;border-radius:20px;cursor:pointer;font-size:.88rem;transition:all .15s}
-.filter-bar button.active,.filter-bar button:hover{border-color:#1a73e8;color:#1a73e8;background:#e8f0fe}
-#statsBar{margin-left:auto;font-size:.85rem;color:#666}
-#copyToast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 24px;border-radius:20px;font-size:.9rem;pointer-events:none;opacity:0;transition:opacity .25s;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.2)}
-#uploadArea{border:2px dashed #1a73e8;border-radius:12px;padding:28px;text-align:center;margin-bottom:28px;background:#fff;cursor:pointer;transition:background .15s}
-#uploadArea:hover{background:#e8f0fe}
-#uploadArea p{color:#555;margin-top:8px;font-size:.9rem}
-#fileInput{display:none}
-#uploadProgress{margin-top:10px;height:8px;background:#e0e0e0;border-radius:4px;display:none}
-#uploadProgress .bar{height:100%;background:#1a73e8;border-radius:4px;width:0;transition:width .15s}
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
-.card-wrap{position:relative}
-.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1);cursor:pointer;transition:transform .15s,box-shadow .15s}
-.card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
-.card-wrap.select-mode .card{outline:2px solid transparent}
-.card-wrap.selected .card{outline:3px solid #1a73e8}
-.card-sel{display:none;position:absolute;top:8px;right:8px;z-index:8}
-.card-wrap.select-mode .card-sel{display:block}
-.card-sel input{width:18px;height:18px;cursor:pointer}
-.claim-pin{position:absolute;top:8px;left:8px;z-index:7;background:#ff9800;color:#fff;padding:4px 10px;border-radius:10px;font-size:.72rem;font-weight:800;max-width:calc(100% - 48px);text-align:left;box-shadow:0 2px 6px rgba(0,0,0,.25)}
-.card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.batch-bar{display:none;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:#fff;border-radius:12px;border:1px solid #dee2e6}
-.batch-bar.visible{display:flex}
-.batch-bar label{display:flex;align-items:center;gap:6px;font-size:.88rem;cursor:pointer}
-.batch-bar button{padding:6px 16px;border-radius:20px;border:none;cursor:pointer;font-size:.85rem;font-weight:600;background:#e9ecef}
-.batch-bar button.primary{background:#1a73e8;color:#fff}
-.batch-bar button.danger{background:#dc3545;color:#fff}
-#batchCount{margin-left:auto;font-size:.85rem;color:#555}
-.modal-claim-pin{position:absolute;top:10px;left:10px;z-index:15;background:#ff9800;color:#fff;padding:5px 12px;border-radius:10px;font-size:.8rem;font-weight:800;display:none;max-width:85%;box-shadow:0 2px 8px rgba(0,0,0,.35)}
-.modal-claim-pin.show{display:block}
-.btn-claim{padding:8px 18px;background:#ff9800;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700}
-.btn-claim:hover{background:#f57c00}
-.btn-claim-secondary{padding:8px 14px;background:#fff;color:#666;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:.85rem}
-.card .info{padding:10px 12px}
-.card .filename{font-size:.78rem;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.badge{display:inline-block;border-radius:12px;padding:2px 10px;font-size:.73rem;font-weight:700;margin-bottom:4px}
-.badge-pending{background:#fff3cd;color:#856404}
-.badge-approved{background:#d1e7dd;color:#0f5132}
-.badge-rejected{background:#f8d7da;color:#842029}
-.badge-claimed{background:#fff3e0;color:#e65100}
-.card .reject-reason{font-size:.73rem;color:#842029;margin-top:4px;word-break:break-all}
-#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
-#modal.open{display:flex}
-.modal-box{background:#fff;border-radius:16px;max-width:920px;width:100%;max-height:96vh;overflow-y:auto;display:flex;flex-direction:column}
-.modal-img-wrap{
-  background:#111;border-radius:16px 16px 0 0;overflow:auto;display:flex;align-items:center;justify-content:center;position:relative;
-  flex-shrink:0;min-height:0;padding:8px;box-sizing:border-box;
-  max-height:min(82vh,calc(100dvh - 200px));
-}
-.modal-img-wrap img{
-  max-width:100%;width:auto;height:auto;object-fit:contain;display:block;
-  max-height:min(82vh,calc(100dvh - 200px));
-}
-.nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.85);border:none;border-radius:50%;width:40px;height:40px;font-size:1.2rem;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.nav-btn:hover{background:#fff}
-.nav-btn:disabled{opacity:.2;cursor:default}
-#btnPrev{left:10px}#btnNext{right:10px}
-#navCounter{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);color:#fff;border-radius:12px;padding:2px 12px;font-size:.8rem}
-.modal-body{padding:18px 22px 22px}
-.modal-body h3{margin-bottom:6px;font-size:1rem;word-break:break-all}
-.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.tag{padding:4px 12px;border:2px solid #ccc;border-radius:20px;cursor:pointer;font-size:.82rem;transition:all .15s;background:#fff}
-.tag.selected{border-color:#1a73e8;background:#e8f0fe;color:#1a73e8;font-weight:700}
-.modal-body textarea{width:100%;border:1px solid #ccc;border-radius:8px;padding:10px;font-size:.88rem;resize:vertical;min-height:60px;font-family:inherit;margin-bottom:14px}
-.modal-body textarea:focus{outline:none;border-color:#1a73e8}
-.comments-list{margin-bottom:14px;max-height:140px;overflow-y:auto}
-.comment-item{background:#f8f9fa;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:.83rem}
-.comment-item .meta{color:#888;font-size:.73rem;margin-bottom:3px}
-.modal-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.btn-approve{padding:8px 22px;background:#198754;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.92rem;font-weight:700}
-.btn-approve:hover{background:#157347}
-.btn-reject{padding:8px 22px;background:#dc3545;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.92rem;font-weight:700}
-.btn-reject:hover{background:#bb2d3b}
-.btn-close{padding:8px 18px;background:#e9ecef;color:#333;border:none;border-radius:8px;cursor:pointer;font-size:.92rem}
-.btn-close:hover{background:#dee2e6}
-.btn-delete{padding:8px 18px;background:#fff;color:#dc3545;border:2px solid #dc3545;border-radius:8px;cursor:pointer;font-size:.92rem;margin-right:auto}
-.btn-delete:hover{background:#f8d7da}
-.replaceBtn{width:100%;margin-top:8px;padding:7px;background:#dc3545;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600}
-.btn-rename{background:none;border:none;cursor:pointer;color:#aaa;font-size:.85rem;padding:0 4px;vertical-align:middle;line-height:1}
-.btn-rename:hover{color:#1a73e8}
-#toastContainer{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
-.toast{background:#323232;color:#fff;border-radius:12px;padding:13px 18px;font-size:.88rem;box-shadow:0 4px 20px rgba(0,0,0,.35);pointer-events:all;display:flex;align-items:flex-start;gap:10px;max-width:320px;line-height:1.5;animation:toastIn .25s ease}
-@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
-.toast-close{background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;padding:0;opacity:.6;flex-shrink:0;margin-left:auto}
-.toast-close:hover{opacity:1}
-#emptyHint{text-align:center;color:#aaa;margin-top:60px;font-size:1rem}
-.view-btn{padding:6px 18px;border:2px solid #ccc;background:#fff;border-radius:20px;cursor:pointer;font-size:.88rem;transition:all .15s;font-family:inherit}
-.view-btn.active,.view-btn:hover{border-color:#1a73e8;color:#1a73e8;background:#e8f0fe}
-#tableView{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1);margin-bottom:20px;display:none}
-#statusTable{width:100%;border-collapse:collapse;font-size:.85rem}
-#statusTable th{background:#f0f2f5;padding:10px 14px;text-align:left;font-weight:700;border-bottom:2px solid #dee2e6;white-space:nowrap}
-#statusTable td{padding:7px 14px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
-#statusTable tr:hover td{background:#f8f9fa;cursor:pointer}
-.st-badge{border-radius:10px;padding:2px 10px;font-size:.76rem;font-weight:700;white-space:nowrap}
-.book-header td{background:#1a73e8;color:#fff;font-weight:700;padding:8px 16px;font-size:.88rem}
-#loginMask{position:fixed;inset:0;background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);display:flex;align-items:center;justify-content:center;z-index:200}
-.login-box{background:#fff;border-radius:16px;padding:40px 36px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25)}
-.login-box h2{margin-bottom:6px;font-size:1.4rem;color:#1a73e8}
-.login-box .sub{color:#666;margin-bottom:22px;font-size:.9rem}
-.login-box input{width:100%;border:1px solid #ccc;border-radius:8px;padding:10px 14px;font-size:1rem;margin-bottom:18px;font-family:inherit}
-.login-box input:focus{outline:none;border-color:#1a73e8}
-.role-pick{display:flex;gap:12px;margin-bottom:22px}
-.role-card{flex:1;border:2px solid #e0e0e0;border-radius:14px;padding:18px 10px 14px;cursor:pointer;transition:all .2s;text-align:center;position:relative;background:#fafafa}
-#cardUploader{border-color:#b3d4fb}
-#cardUploader:hover{border-color:#1a73e8;background:#eef5ff;box-shadow:0 4px 16px rgba(26,115,232,.15);transform:translateY(-2px)}
-#cardUploader.selected{border-color:#1a73e8;background:#e8f0fe;box-shadow:0 4px 16px rgba(26,115,232,.22);transform:translateY(-2px)}
-#cardReviewer{border-color:#a3d9b8}
-#cardReviewer:hover{border-color:#198754;background:#edf7f2;box-shadow:0 4px 16px rgba(25,135,84,.15);transform:translateY(-2px)}
-#cardReviewer.selected{border-color:#198754;background:#d7f0e3;box-shadow:0 4px 16px rgba(25,135,84,.22);transform:translateY(-2px)}
-.role-icon-wrap{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.5rem;transition:transform .2s}
-#cardUploader .role-icon-wrap{background:#dbeafe}
-#cardReviewer .role-icon-wrap{background:#d1fae5}
-.role-card:hover .role-icon-wrap,.role-card.selected .role-icon-wrap{transform:scale(1.12)}
-.role-card .name{font-weight:700;font-size:1rem;margin-bottom:4px}
-#cardUploader .name{color:#1558b0}
-#cardReviewer .name{color:#146c43}
-.role-card .desc{font-size:.72rem;color:#999;line-height:1.5}
-.role-check{position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:900;opacity:0;transition:opacity .15s}
-#cardUploader.selected .role-check{opacity:1;background:#1a73e8;color:#fff}
-#cardReviewer.selected .role-check{opacity:1;background:#198754;color:#fff}
-.login-box button{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer}
-.login-box button:hover{background:#1558b0}
-.role-badge-uploader{background:#dbeafe;color:#1558b0;border-radius:12px;padding:2px 9px;font-size:.78rem;font-weight:700}
-.role-badge-reviewer{background:#d1fae5;color:#146c43;border-radius:12px;padding:2px 9px;font-size:.78rem;font-weight:700}
+  :root {
+    --bg:       #0a0a0a;
+    --bg2:      #0f0f0f;
+    --bg3:      #141414;
+    --border:   #1a2a1a;
+    --green:    #00ff41;
+    --green-dim:#00c832;
+    --green-dark:#003a0e;
+    --green-glow:#00ff4122;
+    --text:     #c8ffc8;
+    --text-dim: #4a7a4a;
+    --text-muted:#2a4a2a;
+    --warn:     #ffb800;
+    --red:      #ff4141;
+    --mono: 'Courier New', 'Consolas', monospace;
+    --sans: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Scanline overlay ─────────────────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Nav ──────────────────────────────────────────────────────────── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: rgba(10,10,10,0.92);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    gap: 2rem;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: var(--green);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nav-logo::before { content: '> '; color: var(--text-dim); }
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.15s;
+  }
+  nav a:hover { color: var(--green); }
+  .nav-right { margin-left: auto; display: flex; gap: 1rem; align-items: center; }
+  .nav-gh {
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.9rem;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--green) !important;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .nav-gh:hover { border-color: var(--green); background: var(--green-glow); }
+
+  /* ── Hero ─────────────────────────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .hero-label span { color: var(--green); }
+  .hero h1 {
+    font-family: var(--mono);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 .cursor-blink {
+    display: inline-block;
+    width: 3px;
+    height: 1em;
+    background: var(--green);
+    margin-left: 4px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--text);
+    max-width: 600px;
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    padding: 0.65rem 1.5rem;
+    border-radius: 3px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    display: inline-block;
+  }
+  .btn-primary {
+    background: var(--green);
+    color: #000;
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: #00dd38; }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+  }
+  .btn-outline:hover { background: var(--green-glow); border-color: var(--green); }
+
+  /* ── Terminal demo ────────────────────────────────────────────────── */
+  .terminal-wrap {
+    margin-top: 3.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #050505;
+  }
+  .terminal-bar {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .terminal-title {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .terminal-body {
+    padding: 1.2rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.8;
+    min-height: 200px;
+  }
+  .t-prompt { color: var(--green); }
+  .t-cmd    { color: var(--text); }
+  .t-out    { color: var(--text-dim); }
+  .t-ok     { color: var(--green); }
+  .t-warn   { color: var(--warn); }
+  .t-info   { color: #5af; }
+  .t-line   { display: block; }
+
+  /* ── Section layout ───────────────────────────────────────────────── */
+  section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .section-label::before { content: '// '; color: var(--text-muted); }
+  h2 {
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2.5rem;
+  }
+  h2 em { color: var(--green); font-style: normal; }
+
+  /* ── Features grid ────────────────────────────────────────────────── */
+  .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .feature-card {
+    background: var(--bg2);
+    padding: 1.8rem;
+  }
+  .feature-card:hover { background: var(--bg3); }
+  .feature-icon {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    background: var(--green-dark);
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+  }
+  .feature-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .feature-card p { font-size: 0.875rem; color: var(--text-dim); line-height: 1.65; }
+
+  /* ── How-to steps ─────────────────────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 1.5rem;
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    line-height: 1;
+    padding-top: 0.2rem;
+  }
+  .step.active .step-num { color: var(--green); }
+  .step-content h3 { font-size: 1rem; color: var(--text); margin-bottom: 0.4rem; }
+  .step-content p  { font-size: 0.875rem; color: var(--text-dim); margin-bottom: 0.6rem; }
+  .code-inline {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--green);
+    padding: 0.15rem 0.45rem;
+    border-radius: 2px;
+  }
+  pre.code-block {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    background: #050505;
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--green-dim);
+    padding: 0.9rem 1.2rem;
+    margin-top: 0.6rem;
+    overflow-x: auto;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  pre.code-block .c { color: var(--text-dim); }
+
+  /* ── Config builder ───────────────────────────────────────────────── */
+  #config-section { border-top: 1px solid var(--border); }
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  @media(max-width:700px){ .config-grid { grid-template-columns: 1fr; } }
+  .config-form { display: flex; flex-direction: column; gap: 1.2rem; }
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.35rem;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: #050505;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--green-dim); }
+  .field select option { background: #111; }
+  .field-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+  .config-preview {
+    position: sticky;
+    top: 70px;
+    background: #050505;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .config-preview-bar {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  #config-output {
+    padding: 1.2rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.75;
+    color: var(--text);
+    min-height: 320px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .ck  { color: #7ec8e3; }
+  .cv  { color: #c8ffc8; }
+  .cs  { color: #ffb87a; }
+  .cc  { color: var(--text-dim); }
+  .btn-download {
+    background: var(--green);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.4rem 1rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-download:hover { background: #00dd38; }
+
+  /* ── Menu table ───────────────────────────────────────────────────── */
+  .menu-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    margin-top: 1rem;
+  }
+  .menu-table th {
+    text-align: left;
+    padding: 0.5rem 1rem;
+    background: var(--bg3);
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .menu-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .menu-table tr:last-child td { border-bottom: none; }
+  .menu-table tr:hover td { background: var(--bg3); }
+  .menu-key { color: var(--green); font-weight: 700; }
+  .menu-desc { color: var(--text); }
+  .menu-note { color: var(--text-dim); font-size: 0.78rem; }
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+  }
+  .badge-warn { background: #2a1a00; color: var(--warn); border: 1px solid #3a2a00; }
+  .badge-ok   { background: var(--green-dark); color: var(--green); border: 1px solid #005a1a; }
+
+  /* ── AI drive section ─────────────────────────────────────────────── */
+  .phase-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 1rem; }
+  @media(max-width:600px){ .phase-cards { grid-template-columns: 1fr; } }
+  .phase-card { background: var(--bg2); padding: 1.6rem; }
+  .phase-title {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+  .phase-card h3 { font-size: 1rem; color: var(--text); margin-bottom: 0.7rem; }
+  .phase-card ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+  .phase-card li { font-size: 0.85rem; color: var(--text-dim); padding-left: 1rem; position: relative; }
+  .phase-card li::before { content: '→'; position: absolute; left: 0; color: var(--green-dim); }
+
+  /* ── Footer ───────────────────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  footer a { color: var(--text-dim); text-decoration: none; }
+  footer a:hover { color: var(--green); }
+
+  /* ── Divider ──────────────────────────────────────────────────────── */
+  .section-divider {
+    max-width: 1000px;
+    margin: 0 auto;
+    border: none;
+    border-top: 1px solid var(--border);
+  }
 </style>
 </head>
 <body>
-<div id="loginMask">
-  <div class="login-box">
-    <h2>PicReview</h2>
-    <p class="sub">请输入名字并选择本次任务</p>
-    <input id="nameInput" type="text" placeholder="你的名字" maxlength="20"/>
-    <div class="role-pick">
-      <div class="role-card" id="cardUploader" data-role="uploader"><div class="role-check">✓</div><div class="role-icon-wrap">📤</div><div class="name">上传</div><div class="desc">上传 / 删除 / 替换</div></div>
-      <div class="role-card" id="cardReviewer" data-role="reviewer"><div class="role-check">✓</div><div class="role-icon-wrap">🔍</div><div class="name">审核</div><div class="desc">通过 / 打回 / 评论</div></div>
-    </div>
-    <button id="enterBtn">进入</button>
+
+<!-- ─── NAV ──────────────────────────────────────────────────────────── -->
+<nav>
+  <a class="nav-logo" href="#">PC Organizer</a>
+  <a href="#features">功能</a>
+  <a href="#howto">使用</a>
+  <a href="#config-section">配置生成器</a>
+  <a href="#ai-drive">AI 盘</a>
+  <div class="nav-right">
+    <a class="nav-gh" href="https://github.com" target="_blank" id="nav-gh-link">[ GitHub ]</a>
   </div>
-</div>
-<header>
-  <h1 id="headerTitle" title="返回项目列表">PicReview</h1>
-  <span id="roleLabel"></span>
-  <button id="logoutBtn">切换</button>
-</header>
-<main>
-  <!-- 项目列表视图 -->
-  <div id="projectsView">
-    <div class="projects-header">
-      <h2>📁 所有项目</h2>
-      <button class="btn-new-folder" id="btnNewFolder">+ 新建项目</button>
+</nav>
+
+<!-- ─── HERO ──────────────────────────────────────────────────────────── -->
+<div style="max-width:900px;margin:0 auto;padding:0 2rem">
+  <div class="hero">
+    <div class="hero-label">Windows · PowerShell · <span>v1.0</span></div>
+    <h1 id="hero-title"><span class="cursor-blink"></span></h1>
+    <p class="hero-sub">
+      把游戏自动迁移到 SSD 和 E 盘，AI 资料智能归类，游戏存档跟着走。
+      原位建目录联接，Steam / Epic 无需任何改动。
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#howto">开始使用</a>
+      <a class="btn btn-outline" href="#config-section">生成配置文件</a>
     </div>
-    <div class="projects-grid" id="projectsGrid"></div>
-  </div>
-  <!-- 图片视图 -->
-  <div id="imagesView" style="display:none">
-    <div class="back-bar">
-      <button class="btn-back" id="btnBack">← 返回</button>
-      <span class="project-title" id="projectTitle"></span>
-      <button class="btn-import-table" id="btnImportTable" style="margin-left:auto" title="上传 CSV 表格，前三列依次为序号、关键词、造句">📥 导入表格</button>
-      <button class="btn-import-table secondary" id="btnClearTable" style="display:none" title="清空当前项目的表格">清空</button>
-      <input type="file" id="tableFileInput" accept=".csv,.txt" style="display:none"/>
-    </div>
-    <div class="projects-search" id="imgSearchBar">
-      <input id="imgSearch" type="text" placeholder="搜索文件名…"/>
-    </div>
-    <div id="uploadArea">
-      <div style="font-size:2.5rem">📤</div>
-      <p><strong>点击或拖拽图片到此处上传</strong></p>
-      <p>支持 JPG / PNG / WEBP，可多选批量上传</p>
-      <input id="fileInput" type="file" accept="image/*" multiple/>
-      <div id="uploadProgress"><div class="bar" id="progressBar"></div></div>
-      <p id="uploadStatus" style="margin-top:6px;font-size:.85rem;color:#555"></p>
-    </div>
-    <div class="filter-bar">
-      <button class="active" data-filter="all">全部</button>
-      <button data-filter="pending">待审核</button>
-      <button data-filter="approved">已通过</button>
-      <button data-filter="claimed">已认领</button>
-      <button data-filter="rejected">已打回</button>
-      <span id="statsBar"></span>
-      <div style="display:flex;gap:6px;margin-left:8px">
-        <button class="view-btn active" data-view="grid">🖼 卡片</button>
-        <button class="view-btn" data-view="table">📊 表格</button>
+
+    <!-- Terminal demo -->
+    <div class="terminal-wrap">
+      <div class="terminal-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="terminal-title">Administrator: Windows PowerShell</span>
       </div>
-    </div>
-    <div class="batch-bar" id="batchBar">
-      <label><input type="checkbox" id="chkSelectMode"/> 多选</label>
-      <label><input type="checkbox" id="chkSelectAll"/> 全选当前列表</label>
-      <button type="button" class="primary" id="btnBatchDownload">下载选中</button>
-      <button type="button" class="danger" id="btnBatchDelete" style="display:none">删除选中</button>
-      <span id="batchCount">已选 0 张</span>
-    </div>
-    <div id="grid"></div>
-    <div id="tableView">
-      <table id="statusTable">
-        <thead><tr><th>序号<button type="button" data-action="copy-ids" title="复制所有序号" style="margin-left:6px;padding:2px 6px;border:1px solid #c8d3e8;background:#eaf2ff;color:#1a73e8;border-radius:4px;cursor:pointer;font-size:.7rem;vertical-align:middle;line-height:1.4">📋 复制</button></th><th>关键词</th><th>造句</th><th>状态</th><th>上传人</th></tr></thead>
-        <tbody id="statusTbody"></tbody>
-      </table>
-    </div>
-    <div id="emptyHint" style="display:none">暂无图片</div>
-  </div>
-</main>
-<div id="toastContainer"></div>
-<div id="modal">
-  <div class="modal-box">
-    <div class="modal-img-wrap">
-      <div class="modal-claim-pin" id="modalClaimPin"></div>
-      <button class="nav-btn" id="btnPrev">&#8592;</button>
-      <img id="modalImg" src="" alt=""/>
-      <button class="nav-btn" id="btnNext">&#8594;</button>
-      <span id="navCounter"></span>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:0"><h3 id="modalFilename" style="margin:0"></h3><button class="btn-rename" id="btnRename" title="改名" style="display:none">✏️</button></div>
-      <p id="modalSentence" style="font-size:.85rem;color:#1a73e8;margin-bottom:6px;display:none"></p>
-      <p id="modalUploader" style="font-size:.78rem;color:#888;margin-bottom:12px"></p>
-      <div id="reviewerSection">
-        <p style="font-size:.83rem;font-weight:600;margin-bottom:8px">添加标签（可多选）</p>
-        <div class="tags">
-          <span class="tag" data-tag="有描边">有描边</span>
-          <span class="tag" data-tag="风格问题">风格问题</span>
-          <span class="tag" data-tag="剧情问题">剧情问题</span>
-          <span class="tag" data-tag="形象/场景问题">形象/场景问题</span>
-          <span class="tag" data-tag="色彩/文字问题">色彩/文字问题</span>
-        </div>
-        <textarea id="commentInput" placeholder="写评论或打回原因（可选）"></textarea>
-        <div style="margin-bottom:10px">
-          <button type="button" class="btn-claim" id="btnClaim" style="display:none">我来改！</button>
-          <button type="button" class="btn-claim-secondary" id="btnUnclaim" style="display:none;margin-left:8px">取消认领</button>
-        </div>
-      </div>
-      <div id="commentsList" class="comments-list"></div>
-      <div class="modal-actions">
-        <button class="btn-delete" id="btnDelete">🗑 删除</button>
-        <button class="btn-close" id="modalClose">关闭</button>
-        <button class="btn-reject" id="btnReject">✗ 打回</button>
-        <button class="btn-approve" id="btnApprove">✓ 通过</button>
-      </div>
-      <div id="replaceSection" style="display:none;margin-top:14px;border-top:1px solid #eee;padding-top:14px">
-        <p style="font-size:.83rem;color:#842029;margin-bottom:8px">⚠ 此图已被打回，上传替换图片：</p>
-        <input id="replaceInput" type="file" accept="image/*"/>
-        <button class="replaceBtn" id="replaceBtn" style="margin-top:8px">上传替换图片</button>
-        <p id="replaceStatus" style="font-size:.8rem;margin-top:6px"></p>
-      </div>
+      <div class="terminal-body" id="terminal-demo"></div>
     </div>
   </div>
 </div>
-<script type="module">
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-const SENTENCE_MAP={
-  "40001":{kw:"天",s:"蓝蓝的天空飘着朵朵白云。"},
-  "40002":{kw:"地",s:"我们在绿油油的草地上奔跑。"},
-  "40003":{kw:"人",s:"广场上真是人山人海。"},
-  "40004":{kw:"你",s:"你们都是我的朋友。"},
-  "40005":{kw:"我",s:"我们要团结友爱，互相帮助。"},
-  "40006":{kw:"他",s:"他们在操场上快乐地踢足球。"},
-  "40007":{kw:"一",s:"我是一个爱学习的好孩子。"},
-  "40008":{kw:"二",s:"爷爷坐在树下拉着二胡。"},
-  "40009":{kw:"三",s:"三月到了，天气慢慢暖和起来了。"},
-  "40010":{kw:"四",s:"四只小鸭子在水里游来游去。"},
-  "40011":{kw:"五",s:"小河里游着五条小鱼，快活又自在。"},
-  "40012":{kw:"上",s:"我们上课时认真听讲。"},
-  "40013":{kw:"下",s:"下雨了，雨点在屋顶上跳起舞来。"},
-  "40014":{kw:"口",s:"奶奶坐在门口，等着我放学回家。"},
-  "40015":{kw:"耳",s:"小兔子竖起耳朵，好像在听悄悄话。"},
-  "40016":{kw:"目",s:"老师的目光，像阳光一样温暖我。"},
-  "40017":{kw:"手",s:"我用双手接住天上飘下来的小雪花。"},
-  "40018":{kw:"足",s:"哥哥在操场上踢足球。"},
-  "40019":{kw:"站",s:"爸爸在车站等我一起回家。"},
-  "40020":{kw:"坐",s:"我每天乘坐校车去学校。"},
-  "40021":{kw:"日",s:"儿童节是我们最喜欢的节日。"},
-  "40022":{kw:"月",s:"弯弯的月亮像小船，在夜空里飘荡。"},
-  "40023":{kw:"水",s:"妈妈买了许多新鲜的水果。"},
-  "40024":{kw:"火",s:"长长的火车轰隆隆地穿过山洞。"},
-  "40025":{kw:"山",s:"周末，我们全家要一起去登山。"},
-  "40026":{kw:"石",s:"花瓣上的露珠好像透明的小宝石。"},
-  "40027":{kw:"田",s:"春天的田野，开满金黄的油菜花。"},
-  "40028":{kw:"禾",s:"雨后的禾苗绿油油的。"},
-  "40029":{kw:"对",s:"我家就住在学校的对面。"},
-  "40030":{kw:"云",s:"天上的云朵像一只只可爱的小绵羊。"},
-  "40031":{kw:"雨",s:"细细的雨点轻轻地敲着窗户。"},
-  "40032":{kw:"风",s:"春风轻轻地吹着，我把风筝放上天。"},
-  "40033":{kw:"花",s:"春天的花园里，蝴蝶在翩翩起舞。"},
-  "40034":{kw:"鸟",s:"秋天到了，候鸟排着队向南方飞去。"},
-  "40035":{kw:"虫",s:"小鸟低下头，寻找草地上的小虫子。"},
-  "40036":{kw:"六",s:"草原上有六匹小马在快乐地奔跑。"},
-  "40037":{kw:"七",s:"路边有七颗挺拔的白杨树。"},
-  "40038":{kw:"八",s:"我画了八朵小红花送给妈妈。"},
-  "40039":{kw:"九",s:"地上摆着九块积木，我要用它们搭一座小塔。"},
-  "40040":{kw:"十",s:"十根手指头，长短不一样。"},
-  "40041":{kw:"爸",s:"爸爸像大树一样为我遮风挡雨。"},
-  "40042":{kw:"妈",s:"妈妈笑着给我讲有趣的故事。"},
-  "40043":{kw:"马",s:"我们过马路时要注意来往的车辆。"},
-  "40044":{kw:"土",s:"春雨过后，泥土里钻出了绿色的小草。"},
-  "40045":{kw:"不",s:"这不是我的故事书。"},
-  "40046":{kw:"画",s:"我长大以后想当一名画家。"},
-  "40047":{kw:"打",s:"周末我和爸爸一起去打球。"},
-  "40048":{kw:"棋",s:"哥哥每天都会认真练习围棋。"},
-  "40049":{kw:"鸡",s:"我每天早上都会吃一个鸡蛋。"},
-  "40050":{kw:"字",s:"这幅字画是爷爷珍藏多年的宝贝。"},
-  "40051":{kw:"词",s:"老师教我们认识了很多新词语。"},
-  "40052":{kw:"语",s:"我最喜欢上有趣的语文课。"},
-  "40053":{kw:"句",s:"老师写的诗句，我们都很喜欢。"},
-  "40054":{kw:"子",s:"桌子上放着一本好看的故事书。"},
-  "40055":{kw:"桌",s:"教室里的桌子摆得整整齐齐。"},
-  "40056":{kw:"纸",s:"我用一张白纸折了一只千纸鹤。"},
-  "40057":{kw:"文",s:"我们要做讲文明懂礼貌的好学生。"},
-  "40058":{kw:"数",s:"老师教我们认识有趣的数字。"},
-  "40059":{kw:"学",s:"我们要努力学习新知识。"},
-  "40060":{kw:"音",s:"我们在音乐声中快乐地跳舞。"},
-  "40061":{kw:"乐",s:"小朋友脸上露出快乐的笑容。"},
-  "40062":{kw:"妹",s:"我的妹妹笑起来有两个小酒窝。"},
-  "40063":{kw:"奶",s:"我早上喜欢喝一杯温热的牛奶。"},
-  "40064":{kw:"白",s:"我喜欢这件干净的白色衣服。"},
-  "40065":{kw:"皮",s:"圆圆的皮球在草地上滚来滚去。"},
-  "40066":{kw:"小",s:"我今年上小学二年级了。"},
-  "40067":{kw:"桥",s:"这座桥梁有几百年的历史。"},
-  "40068":{kw:"台",s:"上楼时要小心脚下的台阶。"},
-  "40069":{kw:"雪",s:"漫天的雪花像一个个小精灵在跳舞。"},
-  "40070":{kw:"儿",s:"我和妈妈去儿童乐园开心地玩游戏。"},
-  "40071":{kw:"草",s:"春天到了，小草从土里探出头来。"},
-  "40072":{kw:"家",s:"我有一个温暖幸福的家庭。"},
-  "40073":{kw:"是",s:"我想出去玩，可是外面下雨了。"},
-  "40074":{kw:"车",s:"爸爸开着汽车带我们去郊游。"},
-  "40075":{kw:"羊",s:"小羊在草地上快乐地吃草。"},
-  "40076":{kw:"走",s:"小朋友排着整齐的队伍一起走路。"},
-  "40077":{kw:"也",s:"我们是小学生，也是祖国的花朵。"},
-  "40078":{kw:"秋",s:"我最喜欢的季节是秋天。"},
-  "40079":{kw:"气",s:"今天的天气真好，阳光明媚。"},
-  "40080":{kw:"了",s:"老师带我们了解了很多有趣的故事。"},
-  "40081":{kw:"树",s:"春天来了，大树长出了嫩绿的新芽。"},
-  "40082":{kw:"叶",s:"一片叶子落在我的肩膀上。"},
-  "40083":{kw:"片",s:"桌上放着一片香喷喷的面包。"},
-  "40084":{kw:"大",s:"门前的大树长得粗壮又高大。"},
-  "40085":{kw:"飞",s:"我看见一架大飞机从天上飞过去。"},
-  "40086":{kw:"会",s:"老师正在会议室里认真开会。"},
-  "40087":{kw:"个",s:"树上有一个红红的大苹果。"},
-  "40088":{kw:"的",s:"我认真画画的目的，是想送给妈妈一副画。"},
-  "40089":{kw:"船",s:"湖面上飘着几只白色的小船。"},
-  "40090":{kw:"两",s:"两个好朋友手拉手一起回家。"},
-  "40091":{kw:"头",s:"妈妈的头发像黑色的瀑布。"},
-  "40092":{kw:"在",s:"小鸟正在树上快活地唱歌。"},
-  "40093":{kw:"里",s:"教室里面摆放着整齐的桌椅。"},
-  "40094":{kw:"看",s:"我看见一只蝴蝶在花丛中飞舞。"},
-  "40095":{kw:"见",s:"我们在郊外遇见了可爱的小动物。"},
-  "40096":{kw:"闪",s:"萤火虫在草丛里快乐地闪烁。"},
-  "40097":{kw:"星",s:"天上的星星仿佛在对我眨眼睛。"},
-  "40098":{kw:"江",s:"长江上有很多来来往往的船只。"},
-  "40099":{kw:"南",s:"温暖的南方盛开着美丽的鲜花。"},
-  "40100":{kw:"可",s:"我们都可以做懂事可爱的孩子。"},
-  "40101":{kw:"采",s:"农民伯伯在果园里采摘苹果。"},
-  "40102":{kw:"莲",s:"池塘里开满了粉色的莲花。"},
-  "40103":{kw:"鱼",s:"我养了两条红色的金鱼。"},
-  "40104":{kw:"东",s:"太阳每天都从东方升起。"},
-  "40105":{kw:"西",s:"太阳从西边慢慢地落下去了。"},
-  "40106":{kw:"北",s:"冬天到了，北方下起了大雪。"},
-  "40107":{kw:"尖",s:"见到小丑表演，大家开心地尖叫。"},
-  "40108":{kw:"说",s:"我们听说要去春游，十分开心。"},
-  "40109":{kw:"春",s:"春天来了，公园里的花都开了。"},
-  "40110":{kw:"青",s:"嫩嫩的青草长满了整个山坡。"},
-  "40111":{kw:"蛙",s:"青蛙在荷叶上呱呱地唱歌。"},
-  "40112":{kw:"夏",s:"夏天我们可以吃甜甜的西瓜。"},
-  "40113":{kw:"弯",s:"我们弯腰捡起地上的纸屑。"},
-  "40114":{kw:"就",s:"他的成就来自于刻苦努力的学习。"},
-  "40115":{kw:"冬",s:"小朋友在冬天快乐地堆起雪人。"},
-  "40116":{kw:"男",s:"男女同学要团结友爱，互相帮助。"},
-  "40117":{kw:"女",s:"那个女孩在认真地画画。"},
-  "40118":{kw:"开",s:"我打开窗户，让阳光照进来。"},
-  "40119":{kw:"关",s:"我们要多关心身边的人和事。"},
-  "40120":{kw:"正",s:"阳光正好洒在了我的书桌上。"},
-  "40121":{kw:"反",s:"我举手反对这个不合理的决定。"},
-  "40122":{kw:"远",s:"爸爸去了远方工作，我很想念他。"},
-  "40123":{kw:"有",s:"我有一本非常好看的故事书。"},
-  "40124":{kw:"色",s:"花园里开满了各种颜色的鲜花。"},
-  "40125":{kw:"近",s:"近处的池塘里开着美丽的荷花。"},
-  "40126":{kw:"听",s:"我听见小鸟在窗外唱歌。"},
-  "40127":{kw:"无",s:"天上有无数颗闪亮的星星。"},
-  "40128":{kw:"声",s:"教室里传来了同学们的读书声。"},
-  "40129":{kw:"去",s:"去年春天，我们一起种下小树苗。"},
-  "40130":{kw:"还",s:"活动结束后，我们把场地还原整齐。"},
-  "40131":{kw:"来",s:"阳光是植物生长的主要能量来源。"},
-  "40132":{kw:"多",s:"天上飘着许多美丽的白云。"},
-  "40133":{kw:"少",s:"沙漠里的小草十分稀少，它们坚强地生长着。"},
-  "40134":{kw:"黄",s:"秋天，树叶都变成了黄色的。"},
-  "40135":{kw:"牛",s:"我每天喝一杯热牛奶。"},
-  "40136":{kw:"只",s:"一只可爱的小鸟停在了树枝上。"},
-  "40137":{kw:"猫",s:"小猫咪躺在阳台上晒太阳。"},
-  "40138":{kw:"边",s:"我们在海边捡了许多贝壳。"},
-  "40139":{kw:"鸭",s:"果园里结满了香甜的鸭梨。"},
-  "40140":{kw:"苹",s:"红红的苹果像小灯笼挂在枝头。"},
-  "40141":{kw:"果",s:"我们在果园里快乐地采摘果子。"},
-  "40142":{kw:"杏",s:"春天来了，公园里的杏花开了。"},
-  "40143":{kw:"桃",s:"春天来了，公园里的桃花都开了。"},
-  "40144":{kw:"书",s:"开学了，妈妈给我买了新书包。"},
-  "40145":{kw:"包",s:"妈妈给我买了一个漂亮的新书包。"},
-  "40146":{kw:"尺",s:"我用尺子画了一条笔直的线。"},
-  "40147":{kw:"作",s:"这位作家写了很多有趣的童话故事。"},
-  "40148":{kw:"业",s:"我每天都认真完成老师留的作业。"},
-  "40149":{kw:"本",s:"老师给我们讲绘本里的故事。"},
-  "40150":{kw:"笔",s:"路边的小树苗长得笔直。"},
-  "40151":{kw:"刀",s:"妈妈用剪刀剪出了一朵小红花。"},
-  "40152":{kw:"课",s:"我们上课时积极举手，大胆发言。"},
-  "40153":{kw:"早",s:"早上，我迎着太阳去上学。"},
-  "40154":{kw:"校",s:"学校里的桂花真香啊！"},
-  "40155":{kw:"明",s:"太阳出来了，大地一片光明。"},
-  "40156":{kw:"力",s:"我们要努力学习新知识。"},
-  "40157":{kw:"尘",s:"打扫教室时，空中飘着轻轻的灰尘。"},
-  "40158":{kw:"从",s:"奶奶经常给我讲从前的故事。"},
-  "40159":{kw:"众",s:"台下的观众为表演者热烈鼓掌。"},
-  "40160":{kw:"双",s:"我用双手把教室打扫得干干净净。"},
-  "40161":{kw:"木",s:"森林里有一间用木头盖成的小屋。"},
-  "40162":{kw:"林",s:"小鸟在树林里快活地唱歌。"},
-  "40163":{kw:"森",s:"森林里住着许多可爱的小动物。"},
-  "40164":{kw:"条",s:"小河里有一条红色的小鱼在游泳。"},
-  "40165":{kw:"心",s:"今天是我的生日，我特别开心。"},
-  "40166":{kw:"升",s:"太阳从东方慢慢地升起来了。"},
-  "40167":{kw:"国",s:"我们国家有着悠久的历史。"},
-  "40168":{kw:"旗",s:"鲜艳的旗帜在校园上空迎风飘扬。"},
-  "40169":{kw:"中",s:"我坐在爸爸和妈妈的中间。"},
-  "40170":{kw:"红",s:"妈妈给我买了一条红色的新裙子。"},
-  "40171":{kw:"歌",s:"我们在校园里唱起欢快的歌曲。"},
-  "40172":{kw:"起",s:"我每天早上都按时起床。"},
-  "40173":{kw:"么",s:"小朋友脸上的笑容多么灿烂呀！"},
-  "40174":{kw:"美",s:"公园里的花儿真美丽。"},
-  "40175":{kw:"丽",s:"春天来了，公园的景色真美丽。"},
-  "40176":{kw:"立",s:"小鸟站立在枝头，快乐地唱歌。"},
-  "40177":{kw:"午",s:"中午，我们在学校食堂吃饭。"},
-  "40178":{kw:"晚",s:"夕阳西下，天边铺满了绚丽的晚霞。"},
-  "40179":{kw:"昨",s:"昨夜，我做了一个甜甜的梦。"},
-  "40180":{kw:"今",s:"今天的校园干净又美丽。"},
-  "40181":{kw:"年",s:"我们年级举行了一场拔河比赛。"},
-  "40182":{kw:"影",s:"我和妈妈一起去看了一场有趣的电影。"},
-  "40183":{kw:"前",s:"我们家前面有一条清澈的小河。"},
-  "40184":{kw:"后",s:"小猫跟在我的后面喵喵叫。"},
-  "40185":{kw:"黑",s:"我喜欢那双黑色的运动鞋。"},
-  "40186":{kw:"狗",s:"森林里的狗熊正在吃甜甜的蜂蜜。"},
-  "40187":{kw:"左",s:"过马路时，我们一定要左右看。"},
-  "40188":{kw:"右",s:"写字时，我用右手拿笔。"},
-  "40189":{kw:"它",s:"小蚂蚁忙着搬家，它们非常勤劳。"},
-  "40190":{kw:"好",s:"那位拾金不昧的叔叔真是个好人。"},
-  "40191":{kw:"朋",s:"我和朋友在树下互相分享点心。"},
-  "40192":{kw:"友",s:"我们要和同学友好相处，互相帮助。"},
-  "40193":{kw:"比",s:"跑步比赛中，我像风一样冲向终点。"},
-  "40194":{kw:"尾",s:"小狗摇着尾巴，欢迎主人回家。"},
-  "40195":{kw:"巴",s:"我每天放学坐巴士回家。"},
-  "40196":{kw:"谁",s:"这是谁的书包放在了桌子上？"},
-  "40197":{kw:"长",s:"长江是我们的母亲河。"},
-  "40198":{kw:"短",s:"他在短跑比赛中获得了第一名。"},
-  "40199":{kw:"把",s:"他对这次考试很有把握。"},
-  "40200":{kw:"伞",s:"雨滴在雨伞上欢快地跳舞。"},
-  "40201":{kw:"兔",s:"小兔子竖起长长的耳朵在吃青草。"},
-  "40202":{kw:"最",s:"春天是外出游玩最好的季节。"},
-  "40203":{kw:"公",s:"春天的公园里，桃花笑得涨红了脸。"},
-  "40204":{kw:"写",s:"他写字时，每一个笔画都那么认真。"},
-  "40205":{kw:"诗",s:"我会背很多首有趣的古诗。"},
-  "40206":{kw:"点",s:"小雨点轻轻地敲打着窗户。"},
-  "40207":{kw:"要",s:"植物的生长需要充足的水分和阳光。"},
-  "40208":{kw:"过",s:"过去，我常和奶奶在院子里晒太阳。"},
-  "40209":{kw:"给",s:"妈妈给予我的爱像星星一样数不清。"},
-  "40210":{kw:"当",s:"看到垃圾，我们应当把它捡起来扔进垃圾桶。"},
-  "40211":{kw:"串",s:"外婆最喜欢邻居来家里串门聊天。"},
-  "40212":{kw:"们",s:"我们都是爱学习的好孩子。"},
-  "40213":{kw:"以",s:"放学以后，我在教室里整理好书包。"},
-  "40214":{kw:"成",s:"我完成了作业，心里真轻松。"},
-  "40215":{kw:"彩",s:"雨停了，天上出现了一道美丽的彩虹。"},
-  "40216":{kw:"半",s:"我用了半天时间才读完那本童话书。"},
-  "40217":{kw:"空",s:"蓝蓝的天空上飘着几朵白云。"},
-  "40218":{kw:"问",s:"我们遇到不懂的问题，要虚心求教。"},
-  "40219":{kw:"到",s:"我得到了老师的表扬。"},
-  "40220":{kw:"方",s:"指南针可以帮助我们辨别方向。"},
-  "40221":{kw:"没",s:"没有一片雪花是相同的。"},
-  "40222":{kw:"更",s:"春天来了，大自然更新了它的衣裳。"},
-  "40223":{kw:"绿",s:"绿色的小草从泥土里探出脑袋。"},
-  "40224":{kw:"出",s:"老师带我们排好队，从学校出发去郊游。"},
-  "40225":{kw:"睡",s:"天黑了，小宝宝在床上安静地睡觉。"},
-  "40226":{kw:"那",s:"那个穿着红裙子的小女孩是我的妹妹。"},
-  "40227":{kw:"海",s:"夏天，爸爸带我到海边去玩。"},
-  "40228":{kw:"真",s:"妹妹天真的眼睛，像亮晶晶的小星星。"},
-  "40229":{kw:"老",s:"王老师教我们画画和唱歌。"},
-  "40230":{kw:"师",s:"老师是辛勤的园丁，培育我们成长。"},
-  "40231":{kw:"吗",s:"我们一起去放风筝，好吗？"},
-  "40232":{kw:"同",s:"我们共同守护班级的荣誉。"},
-  "40233":{kw:"什",s:"是什么让花儿露出了笑脸？"},
-  "40234":{kw:"才",s:"每个孩子都有自己的才华。"},
-  "40235":{kw:"亮",s:"她笑得真漂亮，像春天的花。"},
-  "40236":{kw:"时",s:"时间像小河里的水悄悄地流走。"},
-  "40237":{kw:"候",s:"大树静静地等候春天的消息。"},
-  "40238":{kw:"觉",s:"我们要养成按时睡觉的好习惯。"},
-  "40239":{kw:"得",s:"我获得了绘画比赛的一等奖。"},
-  "40240":{kw:"自",s:"风筝在天空中自由地飞翔。"},
-  "40241":{kw:"己",s:"我学会自己收拾玩具了。"},
-  "40242":{kw:"很",s:"森林里有很多小动物在开音乐会。"},
-  "40243":{kw:"穿",s:"她穿着雨靴，在雨中踩水花。"},
-  "40244":{kw:"衣",s:"奶奶给我的毛衣绣了一朵花。"},
-  "40245":{kw:"服",s:"民族服装展示着多彩的文化。"},
-  "40246":{kw:"快",s:"小鱼在水里快乐地游来游去。"},
-  "40247":{kw:"蓝",s:"蔚蓝的湖水像一块宝石。"},
-  "40248":{kw:"又",s:"今天又是阳光灿烂的一天。"},
-  "40249":{kw:"笑",s:"小朋友拿到糖果，脸上露出了开心的笑容。"},
-  "40250":{kw:"着",s:"小雨执着地拍打着窗户。"},
-  "40251":{kw:"向",s:"我们朝着太阳的方向奔跑。"},
-  "40252":{kw:"和",s:"白鸽衔着树枝，传递和平的消息。"},
-  "40253":{kw:"贝",s:"贝壳躺在沙滩上，听海浪讲故事。"},
-  "40254":{kw:"娃",s:"我给娃娃穿了一件新裙子。"},
-  "40255":{kw:"推",s:"浪花推动小船，在水面轻轻前行。"},
-  "40256":{kw:"活",s:"户外活动让我们亲近大自然。"},
-  "40257":{kw:"金",s:"秋天给大地铺上了金色的地毯。"},
-  "40258":{kw:"哥",s:"哥哥经常给我讲解不会的题目。"},
-  "40259":{kw:"姐",s:"姐姐的琴声像泉水叮咚响。"},
-  "40260":{kw:"弟",s:"表弟和我一起堆了个大雪人。"},
-  "40261":{kw:"叔",s:"警察叔叔指挥交通真辛苦。"},
-  "40262":{kw:"爷",s:"爷爷的皱纹里藏着许多故事。"},
-  "40263":{kw:"群",s:"一群小鸟在天空中自由飞翔。"},
-  "40264":{kw:"竹",s:"过年放爆竹，噼里啪啦真热闹。"},
-  "40265":{kw:"牙",s:"每天早晚我都认真刷牙。"},
-  "40266":{kw:"用",s:"我们要发挥班干部的作用。"},
-  "40267":{kw:"几",s:"几个小朋友在树下玩老鹰捉小鸡。"},
-  "40268":{kw:"步",s:"我们迈着整齐的步伐向前进。"},
-  "40269":{kw:"为",s:"我要成为像爸爸一样勇敢的人。"},
-  "40270":{kw:"参",s:"我积极参加学校的文艺活动。"},
-  "40271":{kw:"加",s:"我加入了少先队，真光荣。"},
-  "40272":{kw:"洞",s:"山上有一个黑漆漆的山洞。"},
-  "40273":{kw:"乌",s:"我养了一只可爱的小乌龟。"},
-  "40274":{kw:"鸦",s:"乌鸦衔来石头，想喝瓶里的水。"},
-  "40275":{kw:"处",s:"我到处寻找我的尺子。"},
-  "40276":{kw:"找",s:"小蚂蚁在草丛里寻找丢失的米粒。"},
-  "40277":{kw:"办",s:"学校举办了精彩的读书活动。"},
-  "40278":{kw:"旁",s:"小河旁边长着高高的柳树。"},
-  "40279":{kw:"许",s:"公园里有许多美丽的花。"},
-  "40280":{kw:"法",s:"认真学习是进步的法宝。"},
-  "40281":{kw:"放",s:"每天放学后我都去打球。"},
-  "40282":{kw:"进",s:"我们要学习先进的科学知识。"},
-  "40283":{kw:"高",s:"小鸟在枝头高兴地唱起歌来。"},
-  "40284":{kw:"住",s:"我居住在一座美丽的城市。"},
-  "40285":{kw:"孩",s:"我们都是懂事的好孩子。"},
-  "40286":{kw:"玩",s:"我和伙伴们一起分享玩具。"},
-  "40287":{kw:"吧",s:"吧台摆放着很多精致的小杯子。"},
-  "40288":{kw:"发",s:"我发现了草丛里的小蚂蚁。"},
-  "40289":{kw:"芽",s:"春天到了，柳树发芽了。"},
-  "40290":{kw:"爬",s:"周末我们一家人去爬山。"},
-  "40291":{kw:"呀",s:"哎呀，我的橡皮找不到了！"},
-  "40292":{kw:"久",s:"这座城市有着悠久的历史。"},
-  "40293":{kw:"回",s:"夕阳西下，小鸟们叽叽喳喳地回家。"},
-  "40294":{kw:"全",s:"过马路时，一定要注意安全。"},
-  "40295":{kw:"变",s:"我的家乡变化真大呀！"},
-  "40296":{kw:"工",s:"工人用勤劳的双手建造高楼大厦。"},
-  "40297":{kw:"厂",s:"工厂里的机器有序运转。"},
-  "40298":{kw:"医",s:"我长大想成为一名医生。"},
-  "40299":{kw:"院",s:"庭院里的大树遮阴又凉快。"},
-  "40300":{kw:"生",s:"学生要好好学习、天天向上。"},
-  "40301":{kw:"霜",s:"风霜过后，树叶慢慢飘落。"},
-  "40302":{kw:"吹",s:"春风轻轻吹拂，柳条跳起了舞蹈。"},
-  "40303":{kw:"落",s:"金黄的落叶铺满乡间小路。"},
-  "40304":{kw:"降",s:"飞机稳稳地降落在跑道上。"},
-  "40305":{kw:"飘",s:"小船在水面轻轻地飘荡。"},
-  "40306":{kw:"游",s:"同学们在操场上开心地做游戏。"},
-  "40307":{kw:"池",s:"小青蛙在池塘里快乐地唱歌。"},
-  "40308":{kw:"入",s:"游乐园的入口处排起了长长的队伍。"},
-  "40309":{kw:"姓",s:"警察叔叔保护着百姓的安全。"},
-  "40310":{kw:"氏",s:"远古氏族有自己独特的习俗。"},
-  "40311":{kw:"李",s:"奶奶院子里的李子酸甜可口。"},
-  "40312":{kw:"张",s:"小鸟张开美丽的翅膀飞向蓝天。"},
-  "40313":{kw:"古",s:"我喜欢读古代神话故事。"},
-  "40314":{kw:"吴",s:"吴地的风景秀丽又迷人。"},
-  "40315":{kw:"赵",s:"我听过很多赵国的历史小故事。"},
-  "40316":{kw:"钱",s:"妈妈给我买了一个粉色的小钱包。"},
-  "40317":{kw:"孙",s:"爷爷牵着孙女的手在公园里散步。"},
-  "40318":{kw:"周",s:"我们的房子周围种满了桂花树。"},
-  "40319":{kw:"王",s:"国王住在美丽的城堡里。"},
-  "40320":{kw:"官",s:"妈妈的五官长得真好看。"},
-  "40321":{kw:"清",s:"盆里的清水映出了妹妹灿烂的笑脸。"},
-  "40322":{kw:"晴",s:"我最喜欢在晴天放风筝。"},
-  "40323":{kw:"眼",s:"妹妹有一双水汪汪的大眼睛。"},
-  "40324":{kw:"睛",s:"我们都要爱护自己的眼睛。"},
-  "40325":{kw:"保",s:"我们要保护森林里的小动物。"},
-  "40326":{kw:"护",s:"护士阿姨在给生病的小朋友打针。"},
-  "40327":{kw:"害",s:"妹妹害怕打雷的声音。"},
-  "40328":{kw:"事",s:"自己能做的事情一定要自己做。"},
-  "40329":{kw:"情",s:"帮助别人让我心情愉快。"},
-  "40330":{kw:"请",s:"今天我生日，爸爸请客吃大餐。"},
-  "40331":{kw:"让",s:"同学之间要互相谦让。"},
-  "40332":{kw:"病",s:"医生温柔地询问病人的身体情况。"},
-  "40333":{kw:"相",s:"同学之间应该互相帮助。"},
-  "40334":{kw:"遇",s:"我在公园遇见了我的好朋友。"},
-  "40335":{kw:"喜",s:"我最喜欢看雨后的彩虹。"},
-  "40336":{kw:"欢",s:"校园里充满了欢乐的笑声。"},
-  "40337":{kw:"怕",s:"小兔子害怕大灰狼，躲进了洞里。"},
-  "40338":{kw:"言",s:"姐姐的言行总是很得体。"},
-  "40339":{kw:"互",s:"好朋友之间要互相关心。"},
-  "40340":{kw:"令",s:"将军拿出令牌调动军队。"},
-  "40341":{kw:"动",s:"舞蹈老师的动作非常优美。"},
-  "40342":{kw:"万",s:"我们千万不能乱扔垃圾。"},
-  "40343":{kw:"纯",s:"孩子的笑容像雪花一样纯洁。"},
-  "40344":{kw:"净",s:"教室被我们打扫得真干净。"},
-  "40345":{kw:"阴",s:"我们在大树的树阴下乘凉。"},
-  "40346":{kw:"雷",s:"春雷唤醒了沉睡的种子。"},
-  "40347":{kw:"电",s:"闪电像一条银蛇在空中游走。"},
-  "40348":{kw:"阵",s:"夏天的阵雨说来就来了。"},
-  "40349":{kw:"冰",s:"妈妈从冰箱里拿出了西瓜。"},
-  "40350":{kw:"冻",s:"冬天到了，小河冻结成了一面镜子。"},
-  "40351":{kw:"夹",s:"妈妈用夹子把衣服晾在绳子上。"},
-  "40352":{kw:"吃",s:"这条街上有各种美味的小吃。"},
-  "40353":{kw:"忘",s:"我永远不会忘记老师的教导。"},
-  "40354":{kw:"井",s:"这口古老的水井养育了全村人。"},
-  "40355":{kw:"村",s:"山脚下的村庄里开满了桃花。"},
-  "40356":{kw:"叫",s:"看到流星，我们兴奋地尖叫起来。"},
-  "40357":{kw:"毛",s:"妈妈给我织的毛衣真暖和。"},
-  "40358":{kw:"主",s:"小狗见到主人高兴地摇尾巴。"},
-  "40359":{kw:"席",s:"夏天睡在凉席上真舒服。"},
-  "40360":{kw:"乡",s:"宁静的乡村有着金灿灿的麦田。"},
-  "40361":{kw:"亲",s:"父亲的爱像大山一样沉稳。"},
-  "40362":{kw:"战",s:"边防战士守护着我们的祖国。"},
-  "40363":{kw:"士",s:"士兵们排着整齐的队伍。"},
-  "40364":{kw:"面",s:"早餐我吃了牛奶和面包。"},
-  "40365":{kw:"想",s:"我的理想是当一名老师。"},
-  "40366":{kw:"告",s:"老师告诉我们要爱护花草树木。"},
-  "40367":{kw:"诉",s:"小鸟在枝头上诉说着春天的故事。"},
-  "40368":{kw:"路",s:"一盏盏路灯照亮了回家的路。"},
-  "40369":{kw:"京",s:"爷爷非常喜欢看京剧。"},
-  "40370":{kw:"安",s:"过马路一定要注意安全。"},
-  "40371":{kw:"门",s:"我拿着门票，兴奋地走进动物园。"},
-  "40372":{kw:"广",s:"广场上有很多人在放风筝。"},
-  "40373":{kw:"非",s:"公园里的花儿开得非常美丽。"},
-  "40374":{kw:"常",s:"我平常都是七点起床。"},
-  "40375":{kw:"壮",s:"祖国的山河多么壮丽呀！"},
-  "40376":{kw:"观",s:"我们喜欢观看足球比赛。"},
-  "40377":{kw:"接",s:"我虚心地接受了老师的建议。"},
-  "40378":{kw:"再",s:"我希望再次看到那片花海。"},
-  "40379":{kw:"做",s:"昨晚我做梦变成了一只小鸟。"},
-  "40380":{kw:"各",s:"我有各种颜色的画笔。"},
-  "40381":{kw:"种",s:"我在花盆里播下了一粒种子。"},
-  "40382":{kw:"样",s:"雷锋叔叔是我们学习的榜样。"},
-  "40383":{kw:"梦",s:"我的梦境像童话世界一样美。"},
-  "40384":{kw:"伙",s:"伙伴们在操场上玩老鹰捉小鸡。"},
-  "40385":{kw:"伴",s:"伴随着音乐，我们跳起了舞。"},
-  "40386":{kw:"却",s:"面对困难，我们不能退却。"},
-  "40387":{kw:"趣",s:"学校举办了一场趣味运动会。"},
-  "40388":{kw:"这",s:"这些花儿都是爷爷亲手种的。"},
-  "40389":{kw:"太",s:"太阳公公露出了笑脸。"},
-  "40390":{kw:"阳",s:"夕阳把天空染成了金色。"},
-  "40391":{kw:"道",s:"道路两旁种满了挺拔的杨树。"},
-  "40392":{kw:"送",s:"我们欢送毕业生离开校园。"},
-  "40393":{kw:"忙",s:"蜜蜂在花丛中忙碌着。"},
-  "40394":{kw:"尝",s:"我们要勇敢地尝试新事物。"},
-  "40395":{kw:"香",s:"淡淡的花香引来了许多蝴蝶。"},
-  "40396":{kw:"甜",s:"睡梦中的妹妹露出甜蜜的微笑。"},
-  "40397":{kw:"温",s:"今天的气温很适合春游。"},
-  "40398":{kw:"暖",s:"穿上毛衣，我觉得十分暖和。"},
-  "40399":{kw:"该",s:"我们应该爱护校园里的小树苗。"},
-  "40400":{kw:"颜",s:"美术课上，我用各种颜色的画笔画彩虹。"},
-  "40401":{kw:"因",s:"因为要考试，所以哥哥在认真复习。"},
-  "40402":{kw:"辆",s:"我有一辆崭新的自行车。"},
-  "40403":{kw:"匹",s:"草原上奔跑着许多马匹。"},
-  "40404":{kw:"册",s:"老师发了一本安全知识册子。"},
-  "40405":{kw:"支",s:"爸爸妈妈很支持我的学习。"},
-  "40406":{kw:"铅",s:"运动员扔铅球的姿势真帅。"},
-  "40407":{kw:"棵",s:"我家门前有一棵高大的榕树。"},
-  "40408":{kw:"架",s:"架子上爬满了绿色的藤蔓。"},
-  "40409":{kw:"块",s:"我用红色的方块搭积木。"},
-  "40410":{kw:"捉",s:"啄木鸟在大树上捕捉害虫。"},
-  "40411":{kw:"急",s:"消防车在执行紧急灭火任务。"},
-  "40412":{kw:"直",s:"我们可以坐高铁直达北京。"},
-  "40413":{kw:"河",s:"春天来了，河水开始慢慢流淌。"},
-  "40414":{kw:"行",s:"骆驼在无边无际的沙漠里行走。"},
-  "40415":{kw:"死",s:"很久没下雨，地上的小草都枯死了。"},
-  "40416":{kw:"信",s:"我相信努力就会有收获。"},
-  "40417":{kw:"跟",s:"小狗紧紧跟随在小主人身后。"},
-  "40418":{kw:"忽",s:"晴朗的天空忽然飘来一片乌云。"},
-  "40419":{kw:"喊",s:"对着空旷的大山呼喊，远处传来了回声。"},
-  "40420":{kw:"身",s:"早睡早起能让身体更强壮。"},
-  "40421":{kw:"窝",s:"树上有一个用树枝搭的鸟窝。"},
-  "40422":{kw:"孤",s:"小羊没有找到伙伴，觉得很孤单。"},
-  "40423":{kw:"单",s:"我可以单独完成这项手工任务。"},
-  "40424":{kw:"都",s:"北京是我们祖国美丽的首都。"},
-  "40425":{kw:"邻",s:"邻居家的叔叔是一个非常热心的人。"},
-  "40426":{kw:"居",s:"我们居住在一个美丽的星球。"},
-  "40427":{kw:"招",s:"小明站在远处，开心地向我招手。"},
-  "40428":{kw:"呼",s:"运动会上，我们为运动员欢呼加油。"},
-  "40429":{kw:"静",s:"课堂上，同学们安静地听老师讲课。"},
-  "40430":{kw:"怎",s:"不管怎样，我都要认真学习。"},
-  "40431":{kw:"独",s:"我独自完成了老师布置的作业。"},
-  "40432":{kw:"跳",s:"妹妹穿着裙子在客厅里跳舞。"},
-  "40433":{kw:"绳",s:"我们用长长的绳子玩拔河游戏。"},
-  "40434":{kw:"讲",s:"姐姐在台上进行了一场精彩的演讲。"},
-  "40435":{kw:"羽",s:"漂亮的孔雀有着五颜六色的羽毛。"},
-  "40436":{kw:"球",s:"下课了，我和伙伴们去操场踢足球。"},
-  "40437":{kw:"戏",s:"我喜欢看有趣的儿童戏剧。"},
-  "40438":{kw:"排",s:"放学了，大家排队整齐地走出校门。"},
-  "40439":{kw:"篮",s:"奶奶挎着篮子去菜市场买菜。"},
-  "40440":{kw:"连",s:"树上接连掉下来好几个大苹果。"},
-  "40441":{kw:"运",s:"坚持运动可以让身体变得强壮。"},
-  "40442":{kw:"夜",s:"宁静的夜晚，天上的星星在眨着小眼睛。"},
-  "40443":{kw:"思",s:"爸爸看着窗外的大雨陷入了沉思。"},
-  "40444":{kw:"床",s:"妈妈把洗干净的床单铺在床上。"},
-  "40445":{kw:"光",s:"柔和的月光像银纱一样洒在湖面上。"},
-  "40446":{kw:"疑",s:"课堂上有了疑问要勇敢向老师请教。"},
-  "40447":{kw:"举",s:"上课发言之前，我们需要先举手。"},
-  "40448":{kw:"望",s:"只要努力，就一定有成功的希望。"},
-  "40449":{kw:"低",s:"妹妹低头看着地上的小蚂蚁。"},
-  "40450":{kw:"故",s:"奶奶给我讲了一个有趣的童话故事。"},
-  "40451":{kw:"胆",s:"妹妹很胆小，不敢一个人睡。"},
-  "40452":{kw:"敢",s:"我们要敢于承认自己的错误。"},
-  "40453":{kw:"往",s:"奶奶和往常一样，在门口等我放学。"},
-  "40454":{kw:"外",s:"窗外有一棵高大的柳树在随风摇摆。"},
-  "40455":{kw:"勇",s:"勇敢的消防员叔叔救出了受困人员。"},
-  "40456":{kw:"窗",s:"妈妈给房间换上了新的窗帘。"},
-  "40457":{kw:"乱",s:"过马路时，千万不能到处乱跑。"},
-  "40458":{kw:"偏",s:"爸爸非常偏爱那盆红色的月季花。"},
-  "40459":{kw:"散",s:"晚饭后，我和爷爷去公园散步。"},
-  "40460":{kw:"原",s:"漂亮的蝴蝶原来是毛毛虫变的。"},
-  "40461":{kw:"像",s:"天空的白云好像一群小绵羊。"},
-  "40462":{kw:"微",s:"老师的微笑像春风一样很温暖。"},
-  "40463":{kw:"端",s:"写字时，我们要保持端正的坐姿。"},
-  "40464":{kw:"粽",s:"端午节那天，奶奶包了许多粽子。"},
-  "40465":{kw:"节",s:"我们要养成节约用水的好习惯。"},
-  "40466":{kw:"总",s:"老师让我们总结这学期的收获。"},
-  "40467":{kw:"米",s:"碗里的米粒像洁白的小珍珠一样。"},
-  "40468":{kw:"间",s:"我把自己的房间收拾得非常整洁。"},
-  "40469":{kw:"分",s:"我把蛋糕分享给我的小伙伴。"},
-  "40470":{kw:"豆",s:"奶奶在院子里种了一排黄豆。"},
-  "40471":{kw:"肉",s:"妈妈买了一些猪肉准备包饺子。"},
-  "40472":{kw:"带",s:"老师带领我们参观博物馆。"},
-  "40473":{kw:"知",s:"多读书能让我们学到很多知识。"},
-  "40474":{kw:"据",s:"警察找到了抓住小偷的重要证据。"},
-  "40475":{kw:"念",s:"我每天早晨都要大声念书。"},
-  "40476":{kw:"虹",s:"大雨过后，天空出现了一道彩虹。"},
-  "40477":{kw:"座",s:"我把座位让给了老奶奶。"},
-  "40478":{kw:"提",s:"课堂上要积极回答老师的提问。"},
-  "40479":{kw:"浇",s:"我每天都给阳台上的花浇水。"},
-  "40480":{kw:"洒",s:"运动员在操场上挥洒汗水。"},
-  "40481":{kw:"挑",s:"调皮的小猫正在用爪子挑逗毛线球。"},
-  "40482":{kw:"兴",s:"听到要去游乐园玩，弟弟很高兴。"},
-  "40483":{kw:"拿",s:"包饺子是奶奶的拿手绝活。"},
-  "40484":{kw:"镜",s:"爷爷戴着老花眼镜读报纸。"},
-  "40485":{kw:"照",s:"相册里有许多我小时候的照片。"},
-  "40486":{kw:"千",s:"操场上的秋千在风中轻轻地晃动。"},
-  "40487":{kw:"裙",s:"奶奶穿着围裙在厨房忙碌。"},
-  "40488":{kw:"眉",s:"奶奶笑起来，弯弯的眉毛像月牙。"},
-  "40489":{kw:"鼻",s:"大象用长长的鼻子卷起香蕉。"},
-  "40490":{kw:"嘴",s:"小鸟张开嘴巴，在树上快乐地唱歌。"},
-  "40491":{kw:"脖",s:"天鹅优雅地伸长了脖子。"},
-  "40492":{kw:"臂",s:"妈妈张开手臂把我拥入怀里。"},
-  "40493":{kw:"肚",s:"可爱的小猫躺在地上，露出肚皮。"},
-  "40494":{kw:"腿",s:"小兔子腿脚灵活，跑得飞快。"},
-  "40495":{kw:"脚",s:"听到上课铃响，同学们加快了脚步。"},
-  "40496":{kw:"蜻",s:"蜻蜓像一架小飞机在空中盘旋。"},
-  "40497":{kw:"蜓",s:"蜻蜓的翅膀在阳光下闪闪发光。"},
-  "40498":{kw:"迷",s:"小蚂蚁迷路了，急得团团转。"},
-  "40499":{kw:"藏",s:"爷爷喜欢收藏各种各样的字画。"},
-  "40500":{kw:"造",s:"我们用勤劳的双手创造美好生活。"}
-};
-const WORD_MAP={
-  "1001":{kw:"name",zh:"名字",i12:null,i18:null,i25:"1001name.png"},
-  "1002":{kw:"nice",zh:"令人愉快的；友好的",i12:null,i18:null,i25:"1002nice.png"},
-  "1003":{kw:"ear",zh:"耳朵",i12:null,i18:null,i25:"1003ear.png"},
-  "1004":{kw:"hand",zh:"手",i12:null,i18:null,i25:"1004hand.png"},
-  "1005":{kw:"eye",zh:"眼睛",i12:null,i18:null,i25:"1005eye.png"},
-  "1006":{kw:"mouth",zh:"嘴",i12:null,i18:null,i25:"1006mouth.png"},
-  "1007":{kw:"arm",zh:"胳膊",i12:null,i18:null,i25:"1007arm.png"},
-  "1008":{kw:"can",zh:"可以",i12:null,i18:null,i25:"1008can.png"},
-  "1009":{kw:"share",zh:"分享",i12:null,i18:null,i25:"1009share.png"},
-  "1010":{kw:"smile",zh:"微笑；笑",i12:null,i18:null,i25:"1010smile.png"},
-  "1011":{kw:"listen",zh:"听；倾听",i12:null,i18:"1011listen.png",i25:null},
-  "1012":{kw:"help",zh:"帮助",i12:null,i18:null,i25:"1012help.png"},
-  "1013":{kw:"say",zh:"说；讲",i12:null,i18:null,i25:"1013say.png"},
-  "1014":{kw:"friend",zh:"朋友",i12:null,i18:"1014friend.png",i25:null},
-  "1015":{kw:"good",zh:"好的",i12:null,i18:null,i25:"1015good.png"},
-  "1016":{kw:"mum",zh:"（口语）妈妈",i12:null,i18:null,i25:"1016mum.png"},
-  "1017":{kw:"dad",zh:"（口语）爸爸",i12:null,i18:null,i25:"1017dad.png"},
-  "1018":{kw:"grandma",zh:"奶奶；姥姥",i12:null,i18:"1018grandma.png",i25:null},
-  "1019":{kw:"grandpa",zh:"爷爷；姥爷",i12:null,i18:"1019grandpa.png",i25:null},
-  "1020":{kw:"grandfather",zh:"（外）祖父；爷爷；姥爷；外公",i12:"1020grandfather.png",i18:null,i25:null},
-  "1021":{kw:"grandmother",zh:"（外）祖母；奶奶；姥姥；外婆",i12:"1021grandmother.png",i18:null,i25:null},
-  "1022":{kw:"mother",zh:"母亲；妈妈",i12:null,i18:"1022mother.png",i25:null},
-  "1023":{kw:"father",zh:"父亲；爸爸",i12:null,i18:"1023father.png",i25:null},
-  "1024":{kw:"me",zh:"我",i12:null,i18:null,i25:"1024me.png"},
-  "1025":{kw:"sister",zh:"姐；妹",i12:null,i18:"1025sister.png",i25:null},
-  "1026":{kw:"family",zh:"家；家庭",i12:null,i18:"1026family.png",i25:null},
-  "1027":{kw:"have",zh:"有",i12:null,i18:null,i25:"1027have.png"},
-  "1028":{kw:"big",zh:"大的",i12:null,i18:null,i25:"1028big.png"},
-  "1029":{kw:"cousin",zh:"堂（表）兄弟；堂（表）姐妹",i12:null,i18:"1029cousin.png",i25:null},
-  "1030":{kw:"brother",zh:"哥；弟",i12:null,i18:"1030brother.png",i25:null},
-  "1031":{kw:"baby",zh:"婴儿",i12:null,i18:null,i25:"1031baby.png"},
-  "1032":{kw:"uncle",zh:"伯父；叔父；舅父；姑父；姨父",i12:null,i18:null,i25:"1032uncle.png"},
-  "1033":{kw:"aunt",zh:"伯母；婶母；舅母；姑母；姨母",i12:null,i18:null,i25:"1033aunt.png"},
-  "1034":{kw:"small",zh:"小的",i12:null,i18:null,i25:"1034small.png"},
-  "1035":{kw:"like",zh:"喜欢",i12:null,i18:null,i25:"1035like.png"},
-  "1036":{kw:"dog",zh:"狗",i12:null,i18:null,i25:"1036dog.png"},
-  "1037":{kw:"pet",zh:"宠物",i12:null,i18:null,i25:"1037pet.png"},
-  "1038":{kw:"cat",zh:"猫",i12:null,i18:null,i25:"1038cat.png"},
-  "1039":{kw:"fish",zh:"鱼；鱼肉",i12:null,i18:null,i25:"1039fish.png"},
-  "1040":{kw:"bird",zh:"鸟",i12:null,i18:null,i25:"1040bird.png"},
-  "1041":{kw:"rabbit",zh:"兔",i12:null,i18:"1041rabbit.png",i25:null},
-  "1042":{kw:"go",zh:"去；走",i12:null,i18:null,i25:"1042go.png"},
-  "1043":{kw:"zoo",zh:"动物园",i12:null,i18:null,i25:"1043zoo.png"},
-  "1044":{kw:"fox",zh:"狐狸",i12:null,i18:null,i25:"1044fox.png"},
-  "1045":{kw:"Miss",zh:"老师；女士",i12:null,i18:null,i25:"1045Miss.png"},
-  "1046":{kw:"panda",zh:"大熊猫",i12:null,i18:null,i25:"1046panda.png"},
-  "1047":{kw:"red panda",zh:"小熊猫",i12:"1047redpanda.png",i18:null,i25:null},
-  "1048":{kw:"cute",zh:"可爱的",i12:null,i18:null,i25:"1048cute.png"},
-  "1049":{kw:"monkey",zh:"猴子",i12:null,i18:"1049monkey.png",i25:null},
-  "1050":{kw:"tiger",zh:"老虎",i12:null,i18:null,i25:"1050tiger.png"},
-  "1051":{kw:"elephant",zh:"大象",i12:null,i18:"1051elephant.png",i25:null},
-  "1052":{kw:"lion",zh:"狮；狮子",i12:null,i18:null,i25:"1052lion.png"},
-  "1053":{kw:"animal",zh:"动物",i12:null,i18:"1053animal.png",i25:null},
-  "1054":{kw:"giraffe",zh:"长颈鹿",i12:null,i18:"1054giraffe.png",i25:null},
-  "1055":{kw:"tall",zh:"高的",i12:null,i18:null,i25:"1055tall.png"},
-  "1056":{kw:"fast",zh:"快的",i12:null,i18:null,i25:"1056fast.png"},
-  "1057":{kw:"apple",zh:"苹果",i12:null,i18:null,i25:"1057apple.png"},
-  "1058":{kw:"banana",zh:"香蕉",i12:null,i18:"1058banana.png",i25:null},
-  "1059":{kw:"farm",zh:"农场",i12:null,i18:null,i25:"1059farm.png"},
-  "1060":{kw:"air",zh:"空气",i12:null,i18:null,i25:"1060air.png"},
-  "1061":{kw:"orange",zh:"橙子；柑橘",i12:null,i18:"1061orange.png",i25:null},
-  "1062":{kw:"grape",zh:"葡萄",i12:null,i18:null,i25:"1062grape.png"},
-  "1063":{kw:"school",zh:"学校",i12:null,i18:"1063school.png",i25:null},
-  "1064":{kw:"garden",zh:"花园",i12:null,i18:"1064garden.png",i25:null},
-  "1065":{kw:"need",zh:"需要",i12:null,i18:null,i25:"1065need.png"},
-  "1066":{kw:"water",zh:"给...浇水；水",i12:null,i18:null,i25:"1066water.png"},
-  "1067":{kw:"flower",zh:"花；花朵",i12:null,i18:"1067flower.png",i25:null},
-  "1068":{kw:"grass",zh:"草；草地",i12:null,i18:null,i25:"1068grass.png"},
-  "1069":{kw:"plant",zh:"种植；植物",i12:null,i18:null,i25:"1069plant.png"},
-  "1070":{kw:"new",zh:"新的",i12:null,i18:null,i25:"1070new.png"},
-  "1071":{kw:"tree",zh:"树",i12:null,i18:null,i25:"1071tree.png"},
-  "1072":{kw:"sun",zh:"阳光；太阳",i12:null,i18:null,i25:"1072sun.png"},
-  "1073":{kw:"give",zh:"给",i12:null,i18:null,i25:"1073give.png"},
-  "1074":{kw:"them",zh:"它们；他们；她们",i12:null,i18:null,i25:"1074them.png"},
-  "1075":{kw:"colour",zh:"颜色",i12:null,i18:"1075colour.png",i25:null},
-  "1076":{kw:"orange",zh:"橙红色；橙红色的",i12:null,i18:"1076orange.png",i25:null},
-  "1077":{kw:"green",zh:"绿色；绿色的",i12:null,i18:null,i25:"1077green.png"},
-  "1078":{kw:"red",zh:"红色；红色的",i12:null,i18:null,i25:"1078red.png"},
-  "1079":{kw:"blue",zh:"蓝色；蓝色的",i12:null,i18:null,i25:"1079blue.png"},
-  "1080":{kw:"make",zh:"使出现；做",i12:null,i18:null,i25:"1080make.png"},
-  "1081":{kw:"purple",zh:"紫色；紫色的",i12:null,i18:"1081purple.png",i25:null},
-  "1082":{kw:"brown",zh:"棕色；棕色的",i12:null,i18:null,i25:"1082brown.png"},
-  "1083":{kw:"bear",zh:"熊",i12:null,i18:null,i25:"1083bear.png"},
-  "1084":{kw:"yellow",zh:"黄色；黄色的",i12:null,i18:"1084yellow.png",i25:null},
-  "1085":{kw:"duck",zh:"鸭",i12:null,i18:null,i25:"1085duck.png"},
-  "1086":{kw:"sea",zh:"海；海洋",i12:null,i18:null,i25:"1086sea.png"},
-  "1087":{kw:"some",zh:"一些",i12:null,i18:null,i25:"1087some.png"},
-  "1088":{kw:"pink",zh:"粉色；粉色的",i12:null,i18:null,i25:"1088pink.png"},
-  "1089":{kw:"draw",zh:"画",i12:null,i18:null,i25:"1089draw.png"},
-  "1090":{kw:"white",zh:"白色；白色的",i12:null,i18:null,i25:"1090white.png"},
-  "1091":{kw:"black",zh:"黑色；黑色的",i12:null,i18:null,i25:"1091black.png"},
-  "1092":{kw:"old",zh:"（多少）岁；年纪；旧的",i12:null,i18:null,i25:"1092old.png"},
-  "1093":{kw:"five",zh:"五",i12:null,i18:null,i25:"1093five.png"},
-  "1094":{kw:"year",zh:"年纪；年",i12:null,i18:null,i25:"1094year.png"},
-  "1095":{kw:"one",zh:"一",i12:null,i18:null,i25:"1095one.png"},
-  "1096":{kw:"two",zh:"二",i12:null,i18:null,i25:"1096two.png"},
-  "1097":{kw:"three",zh:"三",i12:null,i18:null,i25:"1097three.png"},
-  "1098":{kw:"four",zh:"四",i12:null,i18:null,i25:"1098four.png"},
-  "1099":{kw:"ten",zh:"十",i12:null,i18:null,i25:"1099ten.png"},
-  "1100":{kw:"six",zh:"六",i12:null,i18:null,i25:"1100six.png"},
-  "1101":{kw:"seven",zh:"七",i12:null,i18:null,i25:"1101seven.png"},
-  "1102":{kw:"eight",zh:"八",i12:null,i18:null,i25:"1102eight.png"},
-  "1103":{kw:"nine",zh:"九",i12:null,i18:null,i25:"1103nine.png"},
-  "1104":{kw:"oˈclock",zh:"（表示整点）...点钟",i12:null,i18:"1104oclock.png",i25:null},
-  "1105":{kw:"cut",zh:"切块",i12:null,i18:null,i25:"1105cut.png"},
-  "1106":{kw:"eat",zh:"吃",i12:null,i18:null,i25:"1106eat.png"},
-  "1107":{kw:"cake",zh:"蛋糕",i12:null,i18:null,i25:"1107cake.png"},
-  "2001":{kw:"where",zh:"在哪里；到哪里",i12:null,i18:null,i25:"2001where.png"},
-  "2002":{kw:"from",zh:"来自，从...来",i12:null,i18:null,i25:"2002from.png"},
-  "2003":{kw:"about",zh:"大约；左右",i12:null,i18:null,i25:"2003about.png"},
-  "2004":{kw:"today",zh:"今天",i12:null,i18:null,i25:"2004today.png"},
-  "2005":{kw:"teacher",zh:"教师",i12:null,i18:"2005teacher.png",i25:null},
-  "2006":{kw:"student",zh:"学生",i12:null,i18:"2006student.png",i25:null},
-  "2007":{kw:"after",zh:"在...后面",i12:null,i18:null,i25:"2007after.png"},
-  "2008":{kw:"who",zh:"谁；什么人",i12:null,i18:null,i25:"2008who.png"},
-  "2009":{kw:"girl",zh:"女孩",i12:null,i18:null,i25:"2009girl.png"},
-  "2010":{kw:"neighbour",zh:"邻居",i12:"2010neighbour.png",i18:null,i25:null},
-  "2011":{kw:"boy",zh:"男孩",i12:null,i18:null,i25:"2011boy.png"},
-  "2012":{kw:"woman",zh:"成年女子；妇女",i12:null,i18:null,i25:"2012woman.png"},
-  "2013":{kw:"man",zh:"成年男子；男人",i12:null,i18:null,i25:"2013man.png"},
-  "2014":{kw:"Mr",zh:"先生",i12:null,i18:null,i25:"2014Mr.png"},
-  "2015":{kw:"classmate",zh:"同班同学",i12:"2015classmate.png",i18:null,i25:null},
-  "2016":{kw:"he",zh:"他",i12:null,i18:null,i25:"2016he.png"},
-  "2017":{kw:"English",zh:"英语的；英语",i12:null,i18:"2017English.png",i25:null},
-  "2018":{kw:"she",zh:"她",i12:null,i18:null,i25:"2018she.png"},
-  "2019":{kw:"very",zh:"很；非常；十分",i12:null,i18:null,i25:"2019very.png"},
-  "2020":{kw:"UK",zh:"英国",i12:null,i18:null,i25:"2020UK.png"},
-  "2021":{kw:"China",zh:"中国",i12:null,i18:null,i25:"2021China.png"},
-  "2022":{kw:"Canada",zh:"加拿大",i12:null,i18:"2022Canada.png",i25:null},
-  "2023":{kw:"USA",zh:"美国",i12:null,i18:null,i25:"2023USA.png"},
-  "2024":{kw:"has",zh:"具有（某种外表或特征）",i12:null,i18:null,i25:"2024has.png"},
-  "2025":{kw:"long",zh:"（长度或距离）长的",i12:null,i18:null,i25:"2025long.png"},
-  "2026":{kw:"body",zh:"身体",i12:null,i18:null,i25:"2026body.png"},
-  "2027":{kw:"short",zh:"短的；个子矮的",i12:null,i18:null,i25:"2027short.png"},
-  "2028":{kw:"leg",zh:"腿",i12:null,i18:null,i25:"2028leg.png"},
-  "2029":{kw:"right",zh:"准确，确切，恰当",i12:null,i18:null,i25:"2029right.png"},
-  "2030":{kw:"fat",zh:"肥的；肥胖的",i12:null,i18:null,i25:"2030fat.png"},
-  "2031":{kw:"thin",zh:"瘦的",i12:null,i18:null,i25:"2031thin.png"},
-  "2032":{kw:"slow",zh:"缓慢的；慢的",i12:null,i18:null,i25:"2032slow.png"},
-  "2033":{kw:"love",zh:"喜爱；爱",i12:null,i18:null,i25:"2033love.png"},
-  "2034":{kw:"tail",zh:"尾；尾巴",i12:null,i18:null,i25:"2034tail.png"},
-  "2035":{kw:"her",zh:"她；她的",i12:null,i18:null,i25:"2035her.png"},
-  "2036":{kw:"gift",zh:"礼物",i12:null,i18:null,i25:"2036gift.png"},
-  "2037":{kw:"picture",zh:"图画；绘画",i12:null,i18:"2037picture.png",i25:null},
-  "2038":{kw:"card",zh:"贺卡；慰问卡；卡片",i12:null,i18:null,i25:"2038card.png"},
-  "2039":{kw:"sing",zh:"唱(歌)；演唱",i12:null,i18:null,i25:"2039sing.png"},
-  "2040":{kw:"dance",zh:"跳舞",i12:null,i18:null,i25:"2040dance.png"},
-  "2041":{kw:"face",zh:"脸；面孔",i12:null,i18:null,i25:"2041face.png"},
-  "2042":{kw:"all",zh:"所有；全部",i12:null,i18:null,i25:"2042all.png"},
-  "2043":{kw:"so",zh:"这么，那么",i12:null,i18:null,i25:"2043so.png"},
-  "2044":{kw:"talk",zh:"（用某种语言）讲，说；说话",i12:null,i18:null,i25:"2044talk.png"},
-  "2045":{kw:"song",zh:"歌；歌曲",i12:null,i18:null,i25:"2045song.png"},
-  "2046":{kw:"or",zh:"或；或者；还是",i12:null,i18:null,i25:"2046or.png"},
-  "2047":{kw:"much",zh:"许多；大量",i12:null,i18:null,i25:"2047much.png"},
-  "2048":{kw:"eraser",zh:"橡皮",i12:null,i18:"2048eraser.png",i25:null},
-  "2049":{kw:"find",zh:"找到；找回",i12:null,i18:null,i25:"2049find.png"},
-  "2050":{kw:"ruler",zh:"直尺",i12:null,i18:null,i25:"2050ruler.png"},
-  "2051":{kw:"pen",zh:"钢笔",i12:null,i18:null,i25:"2051pen.png"},
-  "2052":{kw:"pencil",zh:"铅笔",i12:null,i18:"2052pencil.png",i25:null},
-  "2053":{kw:"book",zh:"书；书籍",i12:null,i18:null,i25:"2053book.png"},
-  "2054":{kw:"bag",zh:"包；袋",i12:null,i18:null,i25:"2054bag.png"},
-  "2055":{kw:"paper",zh:"纸",i12:null,i18:null,i25:"2055paper.png"},
-  "2056":{kw:"these",zh:"这些",i12:null,i18:null,i25:"2056these.png"},
-  "2057":{kw:"see",zh:"看见",i12:null,i18:null,i25:"2057see.png"},
-  "2058":{kw:"smell",zh:"闻（气味）",i12:null,i18:null,i25:"2058smell.png"},
-  "2059":{kw:"taste",zh:"尝（味道）",i12:null,i18:null,i25:"2059taste.png"},
-  "2060":{kw:"hear",zh:"听见；听到",i12:null,i18:null,i25:"2060hear.png"},
-  "2061":{kw:"touch",zh:"触摸；碰",i12:null,i18:null,i25:"2061touch.png"},
-  "2062":{kw:"learn",zh:"学；学习",i12:null,i18:null,i25:"2062learn.png"},
-  "2063":{kw:"nose",zh:"鼻；鼻子",i12:null,i18:null,i25:"2063nose.png"},
-  "2064":{kw:"tongue",zh:"舌；舌头",i12:null,i18:"2064tongue.png",i25:null},
-  "2065":{kw:"class",zh:"课；班级",i12:null,i18:null,i25:"2065class.png"},
-  "2066":{kw:"in class",zh:"在课堂上",i12:"2066inclass.png",i18:null,i25:null},
-  "2067":{kw:"computer",zh:"计算机；电脑",i12:null,i18:"2067computer.png",i25:null},
-  "2068":{kw:"breakfast",zh:"早餐；早饭",i12:"2068breakfast.png",i18:null,i25:null},
-  "2069":{kw:"time",zh:"时间",i12:null,i18:null,i25:"2069time.png"},
-  "2070":{kw:"bread",zh:"面包",i12:null,i18:null,i25:"2070bread.png"},
-  "2071":{kw:"egg",zh:"（作食物用的）蛋；鸡蛋",i12:null,i18:null,i25:"2071egg.png"},
-  "2072":{kw:"milk",zh:"（牛或羊等的）奶",i12:null,i18:null,i25:"2072milk.png"},
-  "2073":{kw:"noodle",zh:"（常用复数）面条",i12:null,i18:"2073noodle.png",i25:null},
-  "2074":{kw:"juice",zh:"果汁",i12:null,i18:null,i25:"2074juice.png"},
-  "2075":{kw:"rice",zh:"大米",i12:null,i18:null,i25:"2075rice.png"},
-  "2076":{kw:"meat",zh:"肉",i12:null,i18:null,i25:"2076meat.png"},
-  "2077":{kw:"vegetable",zh:"蔬菜",i12:"2077vegetable.png",i18:null,i25:null},
-  "2078":{kw:"healthy",zh:"健康的",i12:null,i18:"2078healthy.png",i25:null},
-  "2079":{kw:"plate",zh:"盘子",i12:null,i18:null,i25:"2079plate.png"},
-  "2080":{kw:"soup",zh:"汤",i12:null,i18:null,i25:"2080soup.png"},
-  "2081":{kw:"fruit",zh:"水果",i12:null,i18:null,i25:"2081fruit.png"},
-  "2082":{kw:"colourful",zh:"五彩缤纷的",i12:"2082colourful.png",i18:null,i25:null},
-  "2083":{kw:"candy",zh:"糖果",i12:null,i18:null,i25:"2083candy.png"},
-  "2084":{kw:"yummy",zh:"很好吃的",i12:null,i18:null,i25:"2084yummy.png"},
-  "2085":{kw:"at",zh:"在（某处）",i12:null,i18:null,i25:"2085at.png"},
-  "2086":{kw:"boat",zh:"小船；舟",i12:null,i18:null,i25:"2086boat.png"},
-  "2087":{kw:"cool",zh:"酷的，绝妙的",i12:null,i18:null,i25:"2087cool.png"},
-  "2088":{kw:"keep",zh:"保有；留着",i12:null,i18:null,i25:"2088keep.png"},
-  "2089":{kw:"home",zh:"家；住所",i12:null,i18:null,i25:"2089home.png"},
-  "2090":{kw:"ball",zh:"球",i12:null,i18:null,i25:"2090ball.png"},
-  "2091":{kw:"doll",zh:"玩偶；玩具娃娃",i12:null,i18:null,i25:"2091doll.png"},
-  "2092":{kw:"car",zh:"小汽车；轿车",i12:null,i18:null,i25:"2092car.png"},
-  "2093":{kw:"on",zh:"（覆盖、附着）在...上",i12:null,i18:null,i25:"2093on.png"},
-  "2094":{kw:"shelf",zh:"架子",i12:null,i18:null,i25:"2094shelf.png"},
-  "2095":{kw:"in",zh:"在...内；在...中",i12:null,i18:null,i25:"2095in.png"},
-  "2096":{kw:"box",zh:"盒子",i12:null,i18:null,i25:"2096box.png"},
-  "2097":{kw:"cap",zh:"帽子",i12:null,i18:null,i25:"2097cap.png"},
-  "2098":{kw:"map",zh:"地图",i12:null,i18:null,i25:"2098map.png"},
-  "2099":{kw:"under",zh:"在（或到、通过）...下面",i12:null,i18:null,i25:"2099under.png"},
-  "2100":{kw:"still",zh:"还是；仍然",i12:null,i18:null,i25:"2100still.png"},
-  "2101":{kw:"put",zh:"放；安置",i12:null,i18:null,i25:"2101put.png"},
-  "2102":{kw:"fifteen",zh:"十五",i12:null,i18:"2102fifteen.png",i25:null},
-  "2103":{kw:"twelve",zh:"十二",i12:null,i18:"2103twelve.png",i25:null},
-  "2104":{kw:"fourteen",zh:"十四",i12:null,i18:"2104fourteen.png",i25:null},
-  "2105":{kw:"thirteen",zh:"十三",i12:null,i18:"2105thirteen.png",i25:null},
-  "2106":{kw:"eleven",zh:"十一",i12:null,i18:"2106eleven.png",i25:null},
-  "2107":{kw:"twenty",zh:"二十",i12:null,i18:"2107twenty.png",i25:null},
-  "2108":{kw:"seventeen",zh:"十七",i12:"2108seventeen.png",i18:null,i25:null},
-  "2109":{kw:"sixteen",zh:"十六",i12:null,i18:"2109sixteen.png",i25:null},
-  "2110":{kw:"eighteen",zh:"十八",i12:null,i18:"2110eighteen.png",i25:null},
-  "2111":{kw:"nineteen",zh:"十九",i12:null,i18:"2111nineteen.png",i25:null},
-  "2112":{kw:"piggy bank",zh:"猪形储钱罐",i12:"2112piggybank.png",i18:null,i25:null},
-  "2113":{kw:"pay",zh:"付费",i12:null,i18:null,i25:"2113pay.png"},
-  "2114":{kw:"back",zh:"回到原处",i12:null,i18:null,i25:"2114back.png"},
-  "3001":{kw:"PE",zh:"体育（课）",i12:null,i18:null,i25:"3001PE.png"},
-  "3002":{kw:"job",zh:"工作；职业",i12:null,i18:null,i25:"3002job.png"},
-  "3003":{kw:"doctor",zh:"医生",i12:null,i18:"3003doctor.png",i25:null},
-  "3004":{kw:"farmer",zh:"农场主；农民",i12:null,i18:"3004farmer.png",i25:null},
-  "3005":{kw:"nurse",zh:"护士",i12:null,i18:null,i25:"3005nurse.png"},
-  "3006":{kw:"office worker",zh:"公司职员",i12:"3006officeworker.png",i18:null,i25:null},
-  "3007":{kw:"factory worker",zh:"工厂工人",i12:"3007factoryworker.png",i18:null,i25:null},
-  "3008":{kw:"busy",zh:"忙碌的",i12:null,i18:null,i25:"3008busy.png"},
-  "3009":{kw:"tired",zh:"疲倦的",i12:null,i18:null,i25:"3009tired.png"},
-  "3010":{kw:"chore",zh:"家庭杂务",i12:null,i18:null,i25:"3010chore.png"},
-  "3011":{kw:"cook",zh:"烹饪；煮",i12:null,i18:null,i25:"3011cook.png"},
-  "3012":{kw:"clean",zh:"打扫；干净的",i12:null,i18:null,i25:"3012clean.png"},
-  "3013":{kw:"room",zh:"房间",i12:null,i18:null,i25:"3013room.png"},
-  "3014":{kw:"look after",zh:"照顾",i12:"3014lookafter.png",i18:null,i25:null},
-  "3015":{kw:"sweep",zh:"扫",i12:null,i18:null,i25:"3015sweep.png"},
-  "3016":{kw:"floor",zh:"地板；地面",i12:null,i18:null,i25:"3016floor.png"},
-  "3017":{kw:"together",zh:"在一起；共同",i12:null,i18:"3017together.png",i25:null},
-  "3018":{kw:"people",zh:"人；人们",i12:null,i18:"3018people.png",i25:null},
-  "3019":{kw:"child",zh:"儿童；小孩",i12:null,i18:null,i25:"3019child.png"},
-  "3020":{kw:"his",zh:"他的",i12:null,i18:null,i25:"3020his.png"},
-  "3021":{kw:"strong",zh:"强壮的",i12:null,i18:"3021strong.png",i25:null},
-  "3022":{kw:"hair",zh:"头发",i12:null,i18:null,i25:"3022hair.png"},
-  "3023":{kw:"also",zh:"也",i12:null,i18:null,i25:"3023also.png"},
-  "3024":{kw:"kind",zh:"友好的",i12:null,i18:null,i25:"3024kind.png"},
-  "3025":{kw:"quiet",zh:"文静的",i12:null,i18:null,i25:"3025quiet.png"},
-  "3026":{kw:"best",zh:"最好的",i12:null,i18:null,i25:"3026best.png"},
-  "3027":{kw:"read",zh:"阅读",i12:null,i18:null,i25:"3027read.png"},
-  "3028":{kw:"Chinese",zh:"中文；中国人；中国的",i12:null,i18:"3028Chinese.png",i25:null},
-  "3029":{kw:"play",zh:"玩耍",i12:null,i18:null,i25:"3029play.png"},
-  "3030":{kw:"game",zh:"游戏",i12:null,i18:null,i25:"3030game.png"},
-  "3031":{kw:"football",zh:"足球运动",i12:null,i18:"3031football.png",i25:null},
-  "3032":{kw:"basketball",zh:"篮球运动",i12:"3032basketball.png",i18:null,i25:null},
-  "3033":{kw:"always",zh:"总是",i12:null,i18:"3033always.png",i25:null},
-  "3034":{kw:"afternoon",zh:"下午",i12:"3034afternoon.png",i18:null,i25:null},
-  "3035":{kw:"there",zh:"（表示存在或发生）；在那里",i12:null,i18:null,i25:"3035there.png"},
-  "3036":{kw:"playground",zh:"游乐场；操场",i12:"3036playground.png",i18:null,i25:null},
-  "3037":{kw:"park",zh:"公园",i12:null,i18:null,i25:"3037park.png"},
-  "3038":{kw:"over",zh:"在...的远端（或对面）",i12:null,i18:null,i25:"3038over.png"},
-  "3039":{kw:"hospital",zh:"医院",i12:null,i18:"3039hospital.png",i25:null},
-  "3040":{kw:"shop",zh:"商店",i12:null,i18:null,i25:"3040shop.png"},
-  "3041":{kw:"toilet",zh:"厕所；卫生间",i12:null,i18:"3041toilet.png",i25:null},
-  "3042":{kw:"bus stop",zh:"公共汽车站",i12:"3042busstop.png",i18:null,i25:null},
-  "3043":{kw:"library",zh:"图书馆",i12:null,i18:"3043library.png",i25:null},
-  "3044":{kw:"sport",zh:"体育运动",i12:null,i18:null,i25:"3044sport.png"},
-  "3045":{kw:"walk",zh:"散步；行走",i12:null,i18:null,i25:"3045walk.png"},
-  "3046":{kw:"community",zh:"社区",i12:"3046community.png",i18:null,i25:null},
-  "3047":{kw:"favourite",zh:"最喜欢的",i12:"3047favourite.png",i18:null,i25:null},
-  "3048":{kw:"place",zh:"地方；场所",i12:null,i18:null,i25:"3048place.png"},
-  "3049":{kw:"photo",zh:"照片",i12:null,i18:null,i25:"3049photo.png"},
-  "3050":{kw:"story",zh:"故事",i12:null,i18:null,i25:"3050story.png"},
-  "3051":{kw:"buy",zh:"购买",i12:null,i18:null,i25:"3051buy.png"},
-  "3052":{kw:"firefighter",zh:"消防队员",i12:"3052firefighter.png",i18:null,i25:null},
-  "3053":{kw:"why",zh:"为什么",i12:null,i18:null,i25:"3053why.png"},
-  "3054":{kw:"driver",zh:"司机",i12:null,i18:"3054driver.png",i25:null},
-  "3055":{kw:"cleaner",zh:"清洁工",i12:null,i18:"3055cleaner.png",i25:null},
-  "3056":{kw:"cook",zh:"厨师",i12:null,i18:null,i25:"3056cook.png"},
-  "3057":{kw:"delivery worker",zh:"快递员",i12:"3057deliveryworker.png",i18:null,i25:null},
-  "3058":{kw:"police officer",zh:"警察；警员",i12:"3058policeofficer.png",i18:null,i25:null},
-  "3059":{kw:"a lot of",zh:"大量；许多",i12:"3059alotof.png",i18:null,i25:null},
-  "3060":{kw:"now",zh:"现在",i12:null,i18:null,i25:"3060now.png"},
-  "3061":{kw:"make the bed",zh:"铺床",i12:"3061makethebed.png",i18:null,i25:null},
-  "3062":{kw:"old",zh:"过去的；年纪大的；老的",i12:null,i18:null,i25:"3062old.png"},
-  "3063":{kw:"tell",zh:"讲述；告诉",i12:null,i18:null,i25:"3063tell.png"},
-  "3064":{kw:"everyone",zh:"每人",i12:null,i18:"3064everyone.png",i25:null},
-  "3065":{kw:"Ms",zh:"女士",i12:null,i18:null,i25:"3065Ms.png"},
-  "3066":{kw:"speak",zh:"说话；发言",i12:null,i18:null,i25:"3066speak.png"},
-  "3067":{kw:"weather",zh:"天气",i12:null,i18:"3067weather.png",i25:null},
-  "3068":{kw:"sunny",zh:"阳光充足的",i12:null,i18:null,i25:"3068sunny.png"},
-  "3069":{kw:"hot",zh:"热的",i12:null,i18:null,i25:"3069hot.png"},
-  "3070":{kw:"bad",zh:"令人不快的；坏的",i12:null,i18:null,i25:"3070bad.png"},
-  "3071":{kw:"cold",zh:"冷的",i12:null,i18:null,i25:"3071cold.png"},
-  "3072":{kw:"windy",zh:"多风的",i12:null,i18:null,i25:"3072windy.png"},
-  "3073":{kw:"cloudy",zh:"多云的",i12:null,i18:"3073cloudy.png",i25:null},
-  "3074":{kw:"rainy",zh:"阴雨的",i12:null,i18:null,i25:"3074rainy.png"},
-  "3075":{kw:"snowy",zh:"多雪的",i12:null,i18:null,i25:"3075snowy.png"},
-  "3076":{kw:"cool",zh:"凉爽的",i12:null,i18:null,i25:"3076cool.png"},
-  "3077":{kw:"warm",zh:"温暖的",i12:null,i18:null,i25:"3077warm.png"},
-  "3078":{kw:"tomorrow",zh:"在明天",i12:null,i18:"3078tomorrow.png",i25:null},
-  "3079":{kw:"rain",zh:"下雨；雨",i12:null,i18:null,i25:"3079rain.png"},
-  "3080":{kw:"closed",zh:"关闭的",i12:null,i18:"3080closed.png",i25:null},
-  "3081":{kw:"film",zh:"电影",i12:null,i18:null,i25:"3081film.png"},
-  "3082":{kw:"idea",zh:"想法；主意",i12:null,i18:null,i25:"3082idea.png"},
-  "3083":{kw:"fly",zh:"操纵（飞行器等）；飞",i12:null,i18:null,i25:"3083fly.png"},
-  "3084":{kw:"kite",zh:"风筝",i12:null,i18:null,i25:"3084kite.png"},
-  "3085":{kw:"snowman",zh:"雪人",i12:null,i18:"3085snowman.png",i25:null},
-  "3086":{kw:"fun",zh:"享乐；乐趣",i12:null,i18:null,i25:"3086fun.png"},
-  "3087":{kw:"their",zh:"他们的；她们的；它们的",i12:null,i18:null,i25:"3087their.png"},
-  "3088":{kw:"swim",zh:"游泳",i12:null,i18:null,i25:"3088swim.png"},
-  "3089":{kw:"Sydney",zh:"悉尼",i12:null,i18:"3089Sydney.png",i25:null},
-  "3090":{kw:"whose",zh:"谁的",i12:null,i18:null,i25:"3090whose.png"},
-  "3091":{kw:"sweater",zh:"毛衣",i12:null,i18:"3091sweater.png",i25:null},
-  "3092":{kw:"sock",zh:"短袜",i12:null,i18:null,i25:"3092sock.png"},
-  "3093":{kw:"mine",zh:"我的",i12:null,i18:null,i25:"3093mine.png"},
-  "3094":{kw:"wear",zh:"穿；戴",i12:null,i18:null,i25:"3094wear.png"},
-  "3095":{kw:"shirt",zh:"衬衫",i12:null,i18:null,i25:"3095shirt.png"},
-  "3096":{kw:"coat",zh:"大衣；外套",i12:null,i18:null,i25:"3096coat.png"},
-  "3097":{kw:"dress",zh:"连衣裙",i12:null,i18:null,i25:"3097dress.png"},
-  "3098":{kw:"which",zh:"哪一个；哪一些",i12:null,i18:null,i25:"3098which.png"},
-  "3099":{kw:"season",zh:"季节",i12:null,i18:"3099season.png",i25:null},
-  "3100":{kw:"winter",zh:"冬天",i12:null,i18:"3100winter.png",i25:null},
-  "3101":{kw:"snow",zh:"下雪；雪",i12:null,i18:null,i25:"3101snow.png"},
-  "3102":{kw:"get together",zh:"聚会",i12:"3102gettogether.png",i18:null,i25:null},
-  "3103":{kw:"spring",zh:"春天",i12:null,i18:"3103spring.png",i25:null},
-  "3104":{kw:"summer",zh:"夏天",i12:null,i18:"3104summer.png",i25:null},
-  "3105":{kw:"autumn",zh:"秋天",i12:null,i18:"3105autumn.png",i25:null},
-  "3106":{kw:"T-shirt",zh:"T恤衫",i12:null,i18:"3106T-shirt.png",i25:null},
-  "3107":{kw:"fall",zh:"落下",i12:null,i18:null,i25:"3107fall.png"},
-  "3108":{kw:"leaf",zh:"叶",i12:null,i18:null,i25:"3108leaf.png"},
-  "3109":{kw:"glove",zh:"手套",i12:null,i18:null,i25:"3109glove.png"},
-  "3110":{kw:"then",zh:"然后；那时",i12:null,i18:null,i25:"3110then.png"},
-  "4001":{kw:"first floor",zh:"一楼",i12:"4001firstfloor.png",i18:null,i25:null},
-  "4002":{kw:"second floor",zh:"二楼",i12:"4002secondfloor.png",i18:null,i25:null},
-  "4003":{kw:"teachers' office",zh:"教师办公室",i12:"4003teachersoffice.png",i18:null,i25:null},
-  "4004":{kw:"library",zh:"图书馆",i12:null,i18:"4004library.png",i25:null},
-  "4005":{kw:"playground",zh:"操场",i12:"4005playground.png",i18:null,i25:null},
-  "4006":{kw:"computer room",zh:"计算机房",i12:"4006computerroom.png",i18:null,i25:null},
-  "4007":{kw:"art room",zh:"美术教室",i12:"4007artroom.png",i18:null,i25:null},
-  "4008":{kw:"music room",zh:"音乐教室",i12:"4008musicroom.png",i18:null,i25:null},
-  "4009":{kw:"next to",zh:"紧邻；在...近旁",i12:"4009nextto.png",i18:null,i25:null},
-  "4010":{kw:"homework",zh:"作业",i12:null,i18:"4010homework.png",i25:null},
-  "4011":{kw:"class",zh:"班；班级",i12:null,i18:null,i25:"4011class.png"},
-  "4012":{kw:"forty",zh:"四十",i12:null,i18:null,i25:"4012forty.png"},
-  "4013":{kw:"way",zh:"方向",i12:null,i18:null,i25:"4013way.png"},
-  "4014":{kw:"breakfast",zh:"早餐；早饭",i12:"4014breakfast.png",i18:null,i25:null},
-  "4015":{kw:"English class",zh:"英语课",i12:"4015Englishclass.png",i18:null,i25:null},
-  "4016":{kw:"lunch",zh:"午餐；午饭",i12:null,i18:null,i25:"4016lunch.png"},
-  "4017":{kw:"music class",zh:"音乐课",i12:"4017musicclass.png",i18:null,i25:null},
-  "4018":{kw:"PE class",zh:"体育课",i12:"4018PEclass.png",i18:null,i25:null},
-  "4019":{kw:"dinner",zh:"（中午或晚上吃的）正餐",i12:null,i18:"4019dinner.png",i25:null},
-  "4020":{kw:"get up",zh:"起床",i12:"4020getup.png",i18:null,i25:null},
-  "4021":{kw:"go to school",zh:"去上学",i12:"4021gotoschool.png",i18:null,i25:null},
-  "4022":{kw:"go home",zh:"回家",i12:"4022gohome.png",i18:null,i25:null},
-  "4023":{kw:"go to bed",zh:"上床睡觉",i12:"4023gotobed.png",i18:null,i25:null},
-  "4024":{kw:"over",zh:"结束",i12:null,i18:null,i25:"4024over.png"},
-  "4025":{kw:"now",zh:"现在；目前",i12:null,i18:null,i25:"4025now.png"},
-  "4026":{kw:"o'clock",zh:"（表示整点）...点钟",i12:null,i18:"4026oclock.png",i25:null},
-  "4027":{kw:"kid",zh:"小孩",i12:null,i18:null,i25:"4027kid.png"},
-  "4028":{kw:"thirty",zh:"三十",i12:null,i18:"4028thirty.png",i25:null},
-  "4029":{kw:"fifty",zh:"五十",i12:null,i18:null,i25:"4029fifty.png"},
-  "4030":{kw:"twenty",zh:"二十",i12:null,i18:"4030twenty.png",i25:null},
-  "4031":{kw:"hurry up",zh:"快点",i12:"4031hurryup.png",i18:null,i25:null},
-  "4032":{kw:"come on",zh:"快；加油",i12:"4032comeon.png",i18:null,i25:null},
-  "4033":{kw:"just a minute",zh:"稍等一会儿",i12:"4033justaminute.png",i18:null,i25:null},
-  "4034":{kw:"cold",zh:"寒冷的；冷的",i12:null,i18:null,i25:"4034cold.png"},
-  "4035":{kw:"cool",zh:"凉的；凉爽的",i12:null,i18:null,i25:"4035cool.png"},
-  "4036":{kw:"warm",zh:"温暖的；暖和的",i12:null,i18:null,i25:"4036warm.png"},
-  "4037":{kw:"hot",zh:"热的；烫的",i12:null,i18:null,i25:"4037hot.png"},
-  "4038":{kw:"sunny",zh:"阳光充足的",i12:null,i18:null,i25:"4038sunny.png"},
-  "4039":{kw:"windy",zh:"多风的；风大的",i12:null,i18:null,i25:"4039windy.png"},
-  "4040":{kw:"cloudy",zh:"阴天的；多云的",i12:null,i18:"4040cloudy.png",i25:null},
-  "4041":{kw:"snowy",zh:"下雪（多）的",i12:null,i18:null,i25:"4041snowy.png"},
-  "4042":{kw:"rainy",zh:"阴雨的；多雨的",i12:null,i18:null,i25:"4042rainy.png"},
-  "4043":{kw:"outside",zh:"在户外",i12:null,i18:"4043outside.png",i25:null},
-  "4044":{kw:"be careful",zh:"小心",i12:"4044becareful.png",i18:null,i25:null},
-  "4045":{kw:"weather",zh:"天气",i12:null,i18:"4045weather.png",i25:null},
-  "4046":{kw:"New York",zh:"纽约",i12:"4046NewYork.png",i18:null,i25:null},
-  "4047":{kw:"how about...",zh:"...怎么样？…情况如何？",i12:"4047howabout.png",i18:null,i25:null},
-  "4048":{kw:"degree",zh:"度；度数",i12:null,i18:"4048degree.png",i25:null},
-  "4049":{kw:"world",zh:"世界",i12:null,i18:null,i25:"4049world.png"},
-  "4050":{kw:"London",zh:"伦敦",i12:null,i18:"4050London.png",i25:null},
-  "4051":{kw:"Moscow",zh:"莫斯科",i12:null,i18:"4051Moscow.png",i25:null},
-  "4052":{kw:"Singapore",zh:"新加坡（市）",i12:"4052Singapore.png",i18:null,i25:null},
-  "4053":{kw:"Sydney",zh:"悉尼",i12:null,i18:"4053Sydney.png",i25:null},
-  "4054":{kw:"fly",zh:"放（风筝等）",i12:null,i18:null,i25:"4054fly.png"},
-  "4055":{kw:"love",zh:"爱你的",i12:null,i18:null,i25:"4055love.png"},
-  "4056":{kw:"tomato",zh:"西红柿",i12:null,i18:"4056tomato.png",i25:null},
-  "4057":{kw:"potato",zh:"马铃薯；土豆",i12:null,i18:"4057potato.png",i25:null},
-  "4058":{kw:"green beans",zh:"豆角；四季豆",i12:"4058greenbeans.png",i18:null,i25:null},
-  "4059":{kw:"carrot",zh:"胡萝卜",i12:null,i18:"4059carrot.png",i25:null},
-  "4060":{kw:"horse",zh:"马",i12:null,i18:null,i25:"4060horse.png"},
-  "4061":{kw:"cow",zh:"母牛；奶牛",i12:null,i18:null,i25:"4061cow.png"},
-  "4062":{kw:"sheep",zh:"羊；绵羊",i12:null,i18:null,i25:"4062sheep.png"},
-  "4063":{kw:"hen",zh:"母鸡",i12:null,i18:null,i25:"4063hen.png"},
-  "4064":{kw:"these",zh:"这些",i12:null,i18:null,i25:"4064these.png"},
-  "4065":{kw:"yum",zh:"表示味道或气味非常好",i12:null,i18:null,i25:"4065yum.png"},
-  "4066":{kw:"animal",zh:"兽；动物",i12:null,i18:"4066animal.png",i25:null},
-  "4067":{kw:"those",zh:"那些",i12:null,i18:null,i25:"4067those.png"},
-  "4068":{kw:"garden",zh:"花园；菜园",i12:null,i18:"4068garden.png",i25:null},
-  "4069":{kw:"farm",zh:"农场",i12:null,i18:null,i25:"4069farm.png"},
-  "4070":{kw:"goat",zh:"山羊",i12:null,i18:null,i25:"4070goat.png"},
-  "4071":{kw:"eat",zh:"吃",i12:null,i18:null,i25:"4071eat.png"},
-  "4072":{kw:"clothes",zh:"衣服；服装",i12:null,i18:"4072clothes.png",i25:null},
-  "4073":{kw:"pants",zh:"裤子",i12:null,i18:null,i25:"4073pants.png"},
-  "4074":{kw:"hat",zh:"（常指带檐的）帽子",i12:null,i18:null,i25:"4074hat.png"},
-  "4075":{kw:"dress",zh:"连衣裙",i12:null,i18:null,i25:"4075dress.png"},
-  "4076":{kw:"skirt",zh:"女裙",i12:null,i18:null,i25:"4076skirt.png"},
-  "4077":{kw:"coat",zh:"外衣；大衣",i12:null,i18:null,i25:"4077coat.png"},
-  "4078":{kw:"sweater",zh:"毛衣",i12:null,i18:"4078sweater.png",i25:null},
-  "4079":{kw:"sock",zh:"短袜",i12:null,i18:null,i25:"4079sock.png"},
-  "4080":{kw:"shorts",zh:"短裤",i12:null,i18:"4080shorts.png",i25:null},
-  "4081":{kw:"jacket",zh:"夹克衫",i12:null,i18:"4081jacket.png",i25:null},
-  "4082":{kw:"shirt",zh:"（尤指男士）衬衫",i12:null,i18:null,i25:"4082shirt.png"},
-  "4083":{kw:"yours",zh:"你的；你们的",i12:null,i18:null,i25:"4083yours.png"},
-  "4084":{kw:"whose",zh:"谁的",i12:null,i18:null,i25:"4084whose.png"},
-  "4085":{kw:"mine",zh:"我的",i12:null,i18:null,i25:"4085mine.png"},
-  "4086":{kw:"pack",zh:"收拾（行李）",i12:null,i18:null,i25:"4086pack.png"},
-  "4087":{kw:"wait",zh:"等待",i12:null,i18:null,i25:"4087wait.png"},
-  "4088":{kw:"glove",zh:"（分手指的）手套",i12:null,i18:null,i25:"4088glove.png"},
-  "4089":{kw:"scarf",zh:"围巾；披巾",i12:null,i18:null,i25:"4089scarf.png"},
-  "4090":{kw:"umbrella",zh:"伞；雨伞",i12:null,i18:"4090umbrella.png",i25:null},
-  "4091":{kw:"sunglasses",zh:"太阳镜",i12:"4091sunglasses.png",i18:null,i25:null},
-  "4092":{kw:"pretty",zh:"美观的；精致的",i12:null,i18:"4092pretty.png",i25:null},
-  "4093":{kw:"expensive",zh:"昂贵的；花钱多的",i12:"4093expensive.png",i18:null,i25:null},
-  "4094":{kw:"cheap",zh:"花钱少的；便宜的",i12:null,i18:null,i25:"4094cheap.png"},
-  "4095":{kw:"nice",zh:"好的",i12:null,i18:null,i25:"4095nice.png"},
-  "4096":{kw:"try on",zh:"试穿",i12:"4096tryon.png",i18:null,i25:null},
-  "4097":{kw:"size",zh:"尺码；号",i12:null,i18:null,i25:"4097size.png"},
-  "4098":{kw:"of course",zh:"当然",i12:"4098ofcourse.png",i18:null,i25:null},
-  "4099":{kw:"too",zh:"太；过于",i12:null,i18:null,i25:"4099too.png"},
-  "4100":{kw:"just",zh:"正好；恰好",i12:null,i18:null,i25:"4100just.png"},
-  "4101":{kw:"how much",zh:"多少钱",i12:"4101howmuch.png",i18:null,i25:null},
-  "4102":{kw:"eighty",zh:"八十",i12:null,i18:"4102eighty.png",i25:null},
-  "4103":{kw:"dollar",zh:"元",i12:null,i18:"4103dollar.png",i25:null},
-  "4104":{kw:"sale",zh:"特价销售；大减价",i12:null,i18:null,i25:"4104sale.png"},
-  "4105":{kw:"more",zh:"更多的",i12:null,i18:null,i25:"4105more.png"},
-  "4106":{kw:"us",zh:"我们",i12:null,i18:null,i25:"4106us.png"},
-  "5001":{kw:"old",zh:"老的；年纪大的",i12:null,i18:null,i25:"5001old.png"},
-  "5002":{kw:"young",zh:"年轻的；岁数不大的",i12:null,i18:null,i25:"5002young.png"},
-  "5003":{kw:"funny",zh:"滑稽的；可笑的",i12:null,i18:null,i25:"5003funny.png"},
-  "5004":{kw:"kind",zh:"体贴的；慈祥的；宽容的",i12:null,i18:null,i25:"5004kind.png"},
-  "5005":{kw:"strict",zh:"要求严格的；严厉的",i12:null,i18:"5005strict.png",i25:null},
-  "5006":{kw:"polite",zh:"有礼貌的；客气的",i12:null,i18:"5006polite.png",i25:null},
-  "5007":{kw:"hard-working",zh:"工作努力的；辛勤的",i12:"5007hard-working.png",i18:null,i25:null},
-  "5008":{kw:"helpful",zh:"有用的；愿意帮忙的",i12:null,i18:"5008helpful.png",i25:null},
-  "5009":{kw:"clever",zh:"聪明的；聪颖的",i12:null,i18:"5009clever.png",i25:null},
-  "5010":{kw:"shy",zh:"羞怯的；腼腆的；怕生的",i12:null,i18:null,i25:"5010shy.png"},
-  "5011":{kw:"know",zh:"知道；了解",i12:null,i18:null,i25:"5011know.png"},
-  "5012":{kw:"our",zh:"我们的",i12:null,i18:null,i25:"5012our.png"},
-  "5013":{kw:"Ms",zh:"女士",i12:null,i18:null,i25:"5013Ms.png"},
-  "5014":{kw:"will",zh:"（谈及将来）将要",i12:null,i18:null,i25:"5014eat.png"},
-  "5015":{kw:"sometimes",zh:"有时；间或",i12:"5015sometimes.png",i18:null,i25:null},
-  "5016":{kw:"robot",zh:"机器人",i12:null,i18:null,i25:"5016robot.png"},
-  "5017":{kw:"him",zh:"（用作宾语或表语）他",i12:null,i18:null,i25:"5017him.png"},
-  "5018":{kw:"speak",zh:"会讲（某种语言）；说话",i12:null,i18:null,i25:"5018speak.png"},
-  "5019":{kw:"finish",zh:"完成；做好",i12:null,i18:"5019finish.png",i25:null},
-  "5020":{kw:"Monday",zh:"星期一",i12:null,i18:"5020Monday.png",i25:null},
-  "5021":{kw:"Tuesday",zh:"星期二",i12:null,i18:"5021Tuesday.png",i25:null},
-  "5022":{kw:"Wednesday",zh:"星期三",i12:"5022Wednesday.png",i18:null,i25:null},
-  "5023":{kw:"Thursday",zh:"星期四",i12:null,i18:"5023Thursday.png",i25:null},
-  "5024":{kw:"Friday",zh:"星期五",i12:null,i18:"5024Friday.png",i25:null},
-  "5025":{kw:"Saturday",zh:"星期六",i12:null,i18:"5025Saturday.png",i25:null},
-  "5026":{kw:"Sunday",zh:"星期日",i12:null,i18:"5026Sunday.png",i25:null},
-  "5027":{kw:"weekend",zh:"周末",i12:null,i18:"5027weekend.png",i25:null},
-  "5028":{kw:"wash",zh:"洗",i12:null,i18:null,i25:"5028wash.png"},
-  "5029":{kw:"wash my clothes",zh:"洗我的衣服",i12:"5029washmyclothes.png",i18:null,i25:null},
-  "5030":{kw:"watch",zh:"看",i12:null,i18:null,i25:"5030watch.png"},
-  "5031":{kw:"watch TV",zh:"看电视",i12:"5031watchTV.png",i18:null,i25:null},
-  "5032":{kw:"do",zh:"做；干",i12:null,i18:null,i25:"5032do.png"},
-  "5033":{kw:"do homework",zh:"做作业",i12:"5033dohomework.png",i18:null,i25:null},
-  "5034":{kw:"read",zh:"看；读",i12:null,i18:null,i25:"5034read.png"},
-  "5035":{kw:"read books",zh:"看书",i12:"5035readbooks.png",i18:null,i25:null},
-  "5036":{kw:"play",zh:"踢；玩；参加（体育运动）",i12:null,i18:null,i25:"5036play.png"},
-  "5037":{kw:"play football",zh:"踢足球",i12:"5037playfootball.png",i18:null,i25:null},
-  "5038":{kw:"cooking",zh:"烹饪；烹调",i12:null,i18:"5038cooking.png",i25:null},
-  "5039":{kw:"often",zh:"时常；常常",i12:null,i18:null,i25:"5039often.png"},
-  "5040":{kw:"park",zh:"公园",i12:null,i18:null,i25:"5040park.png"},
-  "5041":{kw:"tired",zh:"疲倦的",i12:null,i18:null,i25:"5041tired.png"},
-  "5042":{kw:"sport",zh:"体育运动",i12:null,i18:null,i25:"5042sport.png"},
-  "5043":{kw:"play sports",zh:"做体育运动",i12:"5043playsports.png",i18:null,i25:null},
-  "5044":{kw:"should",zh:"（常用于纠正别人）应该",i12:null,i18:"5044should.png",i25:null},
-  "5045":{kw:"every",zh:"每一个，每个",i12:null,i18:null,i25:"5045every.png"},
-  "5046":{kw:"day",zh:"一天；一日",i12:null,i18:null,i25:"5046day.png"},
-  "5047":{kw:"schedule",zh:"工作计划；日程安排",i12:null,i18:"5047schedule.png",i25:null},
-  "5048":{kw:"sandwich",zh:"三明治",i12:null,i18:"5048sandwich.png",i25:null},
-  "5049":{kw:"salad",zh:"蔬菜沙拉；混合沙拉",i12:null,i18:null,i25:"5049salad.png"},
-  "5050":{kw:"hamburger",zh:"汉堡包",i12:"5050hamburger.png",i18:null,i25:null},
-  "5051":{kw:"ice cream",zh:"冰激凌",i12:"5051icecream.png",i18:null,i25:null},
-  "5052":{kw:"tea",zh:"茶；茶水",i12:null,i18:null,i25:"5052tea.png"},
-  "5053":{kw:"fresh",zh:"新鲜的；刚摘的",i12:null,i18:null,i25:"5053fresh.png"},
-  "5054":{kw:"healthy",zh:"健康的",i12:null,i18:"5054healthy.png",i25:null},
-  "5055":{kw:"delicious",zh:"美味的；可口的",i12:"5055delicious.png",i18:null,i25:null},
-  "5056":{kw:"hot",zh:"辣的；辛辣的",i12:null,i18:null,i25:"5056hot.png"},
-  "5057":{kw:"sweet",zh:"含糖的；甜的",i12:null,i18:null,i25:"5057sweet.png"},
-  "5058":{kw:"drink",zh:"喝；饮",i12:null,i18:null,i25:"5058drink.png"},
-  "5059":{kw:"thirsty",zh:"渴的；口渴的",i12:null,i18:"5059thirsty.png",i25:null},
-  "5060":{kw:"favourite",zh:"特别喜爱的",i12:"5060favourite.png",i18:null,i25:null},
-  "5061":{kw:"food",zh:"食物",i12:null,i18:null,i25:"5061food.png"},
-  "5062":{kw:"Dear",zh:"亲爱的",i12:null,i18:null,i25:"5062Dear.png"},
-  "5063":{kw:"onion",zh:"洋葱；葱头",i12:null,i18:null,i25:"5063onion.png"},
-  "5064":{kw:"sing",zh:"唱；唱歌",i12:null,i18:null,i25:"5064sing.png"},
-  "5065":{kw:"song",zh:"歌曲",i12:null,i18:null,i25:"5065song.png"},
-  "5066":{kw:"sing English songs",zh:"唱英文歌曲",i12:"5066singEnglishsongs.png",i18:null,i25:null},
-  "5067":{kw:"play the pipa",zh:"弹琵琶",i12:"5067playthepipa.png",i18:null,i25:null},
-  "5068":{kw:"kung fu",zh:"功夫；武术",i12:"5068kungfu.png",i18:null,i25:null},
-  "5069":{kw:"do kung fu",zh:"练武术",i12:"5069dokungfu.png",i18:null,i25:null},
-  "5070":{kw:"dance",zh:"跳舞",i12:null,i18:null,i25:"5070dance.png"},
-  "5071":{kw:"draw",zh:"画",i12:null,i18:null,i25:"5071draw.png"},
-  "5072":{kw:"cartoon",zh:"漫画",i12:null,i18:"5072cartoon.png",i25:null},
-  "5073":{kw:"draw cartoons",zh:"画漫画",i12:"5073drawcartoons.png",i18:null,i25:null},
-  "5074":{kw:"cook",zh:"烹调；烹饪",i12:null,i18:null,i25:"5074cook.png"},
-  "5075":{kw:"swim",zh:"游泳",i12:null,i18:null,i25:"5075swim.png"},
-  "5076":{kw:"play basketball",zh:"打篮球",i12:"5076playbasketball.png",i18:null,i25:null},
-  "5077":{kw:"ping-pong",zh:"乒乓球",i12:"5077pingpong.png",i18:null,i25:null},
-  "5078":{kw:"play ping-pong",zh:"打乒乓球",i12:"5078playping-pong.png",i18:null,i25:null},
-  "5079":{kw:"speak English",zh:"说英语",i12:"5079speakEnglish.png",i18:null,i25:null},
-  "5080":{kw:"we'll",zh:"我们将要",i12:null,i18:null,i25:"5080well.png"},
-  "5081":{kw:"party",zh:"聚会；派对",i12:null,i18:null,i25:"5081party.png"},
-  "5082":{kw:"next",zh:"下一个的；接下来的",i12:null,i18:null,i25:"5082next.png"},
-  "5083":{kw:"wonderful",zh:"极好的；了不起的",i12:"5083wonderful.png",i18:null,i25:null},
-  "5084":{kw:"learn",zh:"学；学习；学会",i12:null,i18:null,i25:"5084learn.png"},
-  "5085":{kw:"any",zh:"任何的；任一的",i12:null,i18:null,i25:"5085any.png"},
-  "5086":{kw:"problem",zh:"问题",i12:null,i18:"5086problem.png",i25:null},
-  "5087":{kw:"no problem",zh:"没问题",i12:"5087noproblem.png",i18:null,i25:null},
-  "5088":{kw:"want",zh:"要；想要",i12:null,i18:null,i25:"5088want.png"},
-  "5089":{kw:"send",zh:"邮寄；发送",i12:null,i18:null,i25:"5089send.png"},
-  "5090":{kw:"email",zh:"电子邮件",i12:null,i18:null,i25:"5090email.png"},
-  "5091":{kw:"at",zh:"（后面接邮件地址）",i12:null,i18:null,i25:"5091at.png"},
-  "5092":{kw:"clock",zh:"时钟；钟",i12:null,i18:null,i25:"5092clock.png"},
-  "5093":{kw:"plant",zh:"植物",i12:null,i18:null,i25:"5093plant.png"},
-  "5094":{kw:"bottle",zh:"瓶子",i12:null,i18:"5094bottle.png",i25:null},
-  "5095":{kw:"water bottle",zh:"水瓶",i12:"5095waterbottle.png",i18:null,i25:null},
-  "5096":{kw:"bike",zh:"自行车；脚踏车",i12:null,i18:null,i25:"5096bike.png"},
-  "5097":{kw:"photo",zh:"照片；相片",i12:null,i18:null,i25:"5097photo.png"},
-  "5098":{kw:"front",zh:"正面",i12:null,i18:null,i25:"5098front.png"},
-  "5099":{kw:"in front of",zh:"在...前面",i12:"5099infrontof.png",i18:null,i25:null},
-  "5100":{kw:"between",zh:"在...中间",i12:null,i18:"5100between.png",i25:null},
-  "5101":{kw:"above",zh:"在（或向）...上面",i12:null,i18:null,i25:"5101above.png"},
-  "5102":{kw:"beside",zh:"在旁边（附近）",i12:null,i18:"5102beside.png",i25:null},
-  "5103":{kw:"behind",zh:"在（或向）...后面",i12:null,i18:"5103behind.png",i25:null},
-  "5104":{kw:"there",zh:"表示存在或发生",i12:null,i18:null,i25:"5104there.png"},
-  "5105":{kw:"grandparent",zh:"祖父/母；外祖父/母",i12:"5105grandparent.png",i18:null,i25:null},
-  "5106":{kw:"their",zh:"他们的；她们的；它们的",i12:null,i18:null,i25:"5106their.png"},
-  "5107":{kw:"house",zh:"房屋；房子；住宅",i12:null,i18:null,i25:"5107house.png"},
-  "5108":{kw:"lot",zh:"大量；许多",i12:null,i18:null,i25:"5108lot.png"},
-  "5109":{kw:"lots of",zh:"大量；许多",i12:"5109lotsof.png",i18:null,i25:null},
-  "5110":{kw:"flower",zh:"花；花朵",i12:null,i18:"5110flower.png",i25:null},
-  "5111":{kw:"move",zh:"搬家",i12:null,i18:null,i25:"5111move.png"},
-  "5112":{kw:"dirty",zh:"肮脏的",i12:null,i18:null,i25:"5112dirty.png"},
-  "5113":{kw:"everywhere",zh:"处处；到处",i12:"5113everywhere.png",i18:null,i25:null},
-  "5114":{kw:"mouse",zh:"老鼠",i12:null,i18:null,i25:"5114mouse.png"},
-  "5115":{kw:"live",zh:"住；居住",i12:null,i18:null,i25:"5115live.png"},
-  "5116":{kw:"nature",zh:"自然界；大自然",i12:null,i18:"5116nature.png",i25:null},
-  "5117":{kw:"forest",zh:"森林；林区",i12:null,i18:"5117forest.png",i25:null},
-  "5118":{kw:"river",zh:"河；江",i12:null,i18:null,i25:"5118river.png"},
-  "5119":{kw:"lake",zh:"湖；湖泊",i12:null,i18:null,i25:"5119lake.png"},
-  "5120":{kw:"mountain",zh:"高山；山岳",i12:null,i18:"5120mountain.png",i25:null},
-  "5121":{kw:"hill",zh:"山丘；小山",i12:null,i18:null,i25:"5121hill.png"},
-  "5122":{kw:"tree",zh:"树；树木；乔木",i12:null,i18:null,i25:"5122tree.png"},
-  "5123":{kw:"bridge",zh:"桥",i12:null,i18:"5123bridge.png",i25:null},
-  "5124":{kw:"building",zh:"建筑物；房子；楼房",i12:null,i18:"5124building.png",i25:null},
-  "5125":{kw:"village",zh:"村庄；村镇",i12:null,i18:"5125village.png",i25:null},
-  "5126":{kw:"house",zh:"房屋；房子；住宅",i12:null,i18:null,i25:"5126house.png"},
-  "5127":{kw:"boating",zh:"划船",i12:null,i18:"5127boating.png",i25:null},
-  "5128":{kw:"go boating",zh:"去划船",i12:"5128goboating.png",i18:null,i25:null},
-  "5129":{kw:"aren't",zh:"不是",i12:null,i18:"5129arent.png",i25:null},
-  "5130":{kw:"rabbit",zh:"兔；野兔",i12:null,i18:"5130rabbit.png",i25:null},
-  "5131":{kw:"high",zh:"高的",i12:null,i18:null,i25:"5131high.png"},
-  "6001":{kw:"eat breakfast",zh:"吃早饭",i12:"6001eatbreakfast.png",i18:null,i25:null},
-  "6002":{kw:"have ... class",zh:"上…课",i12:"6002haveclass.png",i18:null,i25:null},
-  "6003":{kw:"play sports",zh:"进行体育运动",i12:"6003playsports.png",i18:null,i25:null},
-  "6004":{kw:"exercise",zh:"活动；运动",i12:null,i18:"6004exercise.png",i25:null},
-  "6005":{kw:"do morning exercises",zh:"做早操",i12:"6005domorningexercises.png",i18:null,i25:null},
-  "6006":{kw:"eat dinner",zh:"吃晚饭",i12:"6006eatdinner.png",i18:null,i25:null},
-  "6007":{kw:"clean my room",zh:"打扫我的房间",i12:"6007cleanmyroom.png",i18:null,i25:null},
-  "6008":{kw:"go for a walk",zh:"散步",i12:"6008goforawalk.png",i18:null,i25:null},
-  "6009":{kw:"go shopping",zh:"去买东西；购物",i12:"6009goshopping.png",i18:null,i25:null},
-  "6010":{kw:"take",zh:"学习；上（课）",i12:null,i18:null,i25:"6010take.png"},
-  "6011":{kw:"dancing",zh:"跳舞；舞蹈",i12:null,i18:"6011dancing.png",i25:null},
-  "6012":{kw:"take a dancing class",zh:"上舞蹈课",i12:"6012takeadancingclass.png",i18:null,i25:null},
-  "6013":{kw:"when",zh:"什么时候；何时",i12:null,i18:null,i25:"6013when.png"},
-  "6014":{kw:"after",zh:"在（时间）后",i12:null,i18:null,i25:"6014after.png"},
-  "6015":{kw:"start",zh:"开始",i12:null,i18:null,i25:"6015start.png"},
-  "6016":{kw:"usually",zh:"通常地；惯常地",i12:null,i18:"6016usually.png",i25:null},
-  "6017":{kw:"Spain",zh:"西班牙",i12:null,i18:null,i25:"6017Spain.png"},
-  "6018":{kw:"late",zh:"晚；迟",i12:null,i18:null,i25:"6018late.png"},
-  "6019":{kw:"a.m.",zh:"午前；上午",i12:null,i18:null,i25:"6019a.m..png"},
-  "6020":{kw:"p.m.",zh:"午后；下午",i12:null,i18:null,i25:"6020p.m..png"},
-  "6021":{kw:"why",zh:"为什么",i12:null,i18:null,i25:"6021why.png"},
-  "6022":{kw:"shop",zh:"去买东西；购物",i12:null,i18:null,i25:"6022shop.png"},
-  "6023":{kw:"work",zh:"工作",i12:null,i18:null,i25:"6023work.png"},
-  "6024":{kw:"last",zh:"上一个的；刚过去的",i12:null,i18:null,i25:"6024last.png"},
-  "6025":{kw:"sound",zh:"听起来好像",i12:null,i18:null,i25:"6025sound.png"},
-  "6026":{kw:"also",zh:"还；也",i12:null,i18:null,i25:"6026also.png"},
-  "6027":{kw:"busy",zh:"忙的",i12:null,i18:null,i25:"6027busy.png"},
-  "6028":{kw:"need",zh:"需要",i12:null,i18:null,i25:"6028need.png"},
-  "6029":{kw:"play",zh:"戏剧；剧本",i12:null,i18:null,i25:"6029play.png"},
-  "6030":{kw:"letter",zh:"信",i12:null,i18:"6030letter.png",i25:null},
-  "6031":{kw:"live",zh:"居住",i12:null,i18:null,i25:"6031live.png"},
-  "6032":{kw:"island",zh:"岛",i12:null,i18:"6032island.png",i25:null},
-  "6033":{kw:"always",zh:"总是；一直",i12:null,i18:"6033always.png",i25:null},
-  "6034":{kw:"cave",zh:"山洞；洞穴",i12:null,i18:null,i25:"6034cave.png"},
-  "6035":{kw:"go swimming",zh:"去游泳",i12:"6035goswimming.png",i18:null,i25:null},
-  "6036":{kw:"win",zh:"获胜",i12:null,i18:null,i25:"6036win.png"},
-  "6037":{kw:"spring",zh:"春天",i12:null,i18:"6037spring.png",i25:null},
-  "6038":{kw:"summer",zh:"夏天",i12:null,i18:"6038summer.png",i25:null},
-  "6039":{kw:"autumn",zh:"秋天",i12:null,i18:"6039autumn.png",i25:null},
-  "6040":{kw:"winter",zh:"冬天",i12:null,i18:"6040winter.png",i25:null},
-  "6041":{kw:"season",zh:"季节",i12:null,i18:"6041season.png",i25:null},
-  "6042":{kw:"picnic",zh:"野餐",i12:null,i18:"6042picnic.png",i25:null},
-  "6043":{kw:"go on a picnic",zh:"去野餐",i12:"6043goonapicnic.png",i18:null,i25:null},
-  "6044":{kw:"pick",zh:"摘；采集",i12:null,i18:null,i25:"6044pick.png"},
-  "6045":{kw:"pick apples",zh:"摘苹果",i12:"6045pickapples.png",i18:null,i25:null},
-  "6046":{kw:"snowman",zh:"雪人",i12:null,i18:"6046snowman.png",i25:null},
-  "6047":{kw:"make a snowman",zh:"堆雪人",i12:"6047makeasnowman.png",i18:null,i25:null},
-  "6048":{kw:"go swimming",zh:"去游泳",i12:"6048goswimming.png",i18:null,i25:null},
-  "6049":{kw:"which",zh:"哪一个",i12:null,i18:null,i25:"6049which.png"},
-  "6050":{kw:"best",zh:"最；最高程度地",i12:null,i18:null,i25:"6050best.png"},
-  "6051":{kw:"snow",zh:"雪",i12:null,i18:null,i25:"6051snow.png"},
-  "6052":{kw:"good job",zh:"做得好",i12:"6052goodjob.png",i18:null,i25:null},
-  "6053":{kw:"because",zh:"因为",i12:null,i18:"6053because.png",i25:null},
-  "6054":{kw:"vacation",zh:"假期",i12:null,i18:"6054vacation.png",i25:null},
-  "6055":{kw:"all",zh:"全；完全",i12:null,i18:null,i25:"6055all.png"},
-  "6056":{kw:"pink",zh:"粉色；粉色的",i12:null,i18:null,i25:"6056pink.png"},
-  "6057":{kw:"lovely",zh:"可爱的；美丽的",i12:null,i18:"6057lovely.png",i25:null},
-  "6058":{kw:"leaf",zh:"叶子",i12:null,i18:null,i25:"6058leaf.png"},
-  "6059":{kw:"fall",zh:"落下；【美】秋天",i12:null,i18:null,i25:"6059fall.png"},
-  "6060":{kw:"paint",zh:"用颜料绘画",i12:null,i18:null,i25:"6060paint.png"},
-  "6061":{kw:"January",zh:"一月",i12:null,i18:"6061January.png",i25:null},
-  "6062":{kw:"February",zh:"二月",i12:null,i18:"6062February.png",i25:null},
-  "6063":{kw:"March",zh:"三月",i12:null,i18:null,i25:"6063March.png"},
-  "6064":{kw:"April",zh:"四月",i12:null,i18:null,i25:"6064April.png"},
-  "6065":{kw:"May",zh:"五月",i12:null,i18:null,i25:"6065May.png"},
-  "6066":{kw:"June",zh:"六月",i12:null,i18:null,i25:"6066June.png"},
-  "6067":{kw:"July",zh:"七月",i12:null,i18:null,i25:"6067July.png"},
-  "6068":{kw:"August",zh:"八月",i12:null,i18:"6068August.png",i25:null},
-  "6069":{kw:"September",zh:"九月",i12:"6069September.png",i18:null,i25:null},
-  "6070":{kw:"October",zh:"十月",i12:null,i18:"6070October.png",i25:null},
-  "6071":{kw:"November",zh:"十一月",i12:null,i18:"6071November.png",i25:null},
-  "6072":{kw:"December",zh:"十二月",i12:null,i18:"6072December.png",i25:null},
-  "6073":{kw:"few",zh:"不多；很少",i12:null,i18:null,i25:"6073few.png"},
-  "6074":{kw:"a few",zh:"一些",i12:"6074afew.png",i18:null,i25:null},
-  "6075":{kw:"thing",zh:"事情",i12:null,i18:null,i25:"6075thing.png"},
-  "6076":{kw:"meet",zh:"集会；开会",i12:null,i18:null,i25:"6076meet.png"},
-  "6077":{kw:"sports meet",zh:"运动会",i12:"6077sportsmeet.png",i18:null,i25:null},
-  "6078":{kw:"trip",zh:"旅行",i12:null,i18:null,i25:"6078trip.png"},
-  "6079":{kw:"year",zh:"年",i12:null,i18:null,i25:"6079year.png"},
-  "6080":{kw:"plant",zh:"种植",i12:null,i18:null,i25:"6080plant.png"},
-  "6081":{kw:"contest",zh:"比赛；竞赛",i12:null,i18:"6081contest.png",i25:null},
-  "6082":{kw:"labour",zh:"劳动",i12:null,i18:"6082labour.png",i25:null},
-  "6083":{kw:"Labour Day",zh:"劳动节",i12:"6083LabourDay.png",i18:null,i25:null},
-  "6084":{kw:"the Great Wall",zh:"长城",i12:"6084theGreatWall.png",i18:null,i25:null},
-  "6085":{kw:"national",zh:"国家的",i12:null,i18:"6085national.png",i25:null},
-  "6086":{kw:"National Day",zh:"国庆日",i12:"6086NationalDay.png",i18:null,i25:null},
-  "6087":{kw:"American",zh:"美国的",i12:null,i18:"6087American.png",i25:null},
-  "6088":{kw:"Thanksgiving",zh:"感恩节",i12:"6088Thanksgiving.png",i18:null,i25:null},
-  "6089":{kw:"Christmas",zh:"圣诞节",i12:"6089Christmas.png",i18:null,i25:null},
-  "6090":{kw:"game",zh:"游戏",i12:null,i18:null,i25:"6090game.png"},
-  "6091":{kw:"riddle",zh:"谜；谜语",i12:null,i18:"6091riddle.png",i25:null},
-  "6092":{kw:"act",zh:"扮演",i12:null,i18:null,i25:"6092act.png"},
-  "6093":{kw:"act out",zh:"把…表演出来",i12:"6093actout.png",i18:null,i25:null},
-  "6094":{kw:"RSVP",zh:"（尤用于请柬）请赐复",i12:null,i18:null,i25:"6094RSVP.png"},
-  "6095":{kw:"by",zh:"在…之前",i12:null,i18:null,i25:"6095by.png"},
-  "6096":{kw:"first",zh:"第一（的）",i12:null,i18:null,i25:"6096first.png"},
-  "6097":{kw:"second",zh:"第二（的）",i12:null,i18:"6097second.png",i25:null},
-  "6098":{kw:"third",zh:"第三（的）",i12:null,i18:null,i25:"6098third.png"},
-  "6099":{kw:"fourth",zh:"第四（的）",i12:null,i18:"6099fourth.png",i25:null},
-  "6100":{kw:"fifth",zh:"第五（的）",i12:null,i18:null,i25:"6100fifth.png"},
-  "6101":{kw:"twelfth",zh:"第十二（的）",i12:null,i18:"6101twelfth.png",i25:null},
-  "6102":{kw:"twentieth",zh:"第二十（的）",i12:"6102twentieth.png",i18:null,i25:null},
-  "6103":{kw:"twenty-first",zh:"第二十一（的）",i12:"6103twentyfirst.png",i18:null,i25:null},
-  "6104":{kw:"twenty-third",zh:"第二十三（的）",i12:"6104twentythird.png",i18:null,i25:null},
-  "6105":{kw:"thirtieth",zh:"第三十（的）",i12:"6105thirtieth.png",i18:null,i25:null},
-  "6106":{kw:"other",zh:"其他",i12:null,i18:null,i25:"6106other.png"},
-  "6107":{kw:"special",zh:"特殊的；特别的",i12:null,i18:"6107special.png",i25:null},
-  "6108":{kw:"show",zh:"展览",i12:null,i18:null,i25:"6108show.png"},
-  "6109":{kw:"festival",zh:"节日",i12:null,i18:"6109festival.png",i25:null},
-  "6110":{kw:"kitten",zh:"小猫",i12:null,i18:"6110kitten.png",i25:null},
-  "6111":{kw:"diary",zh:"日记",i12:null,i18:null,i25:"6111diary.png"},
-  "6112":{kw:"still",zh:"仍然；依旧；还是",i12:null,i18:null,i25:"6112still.png"},
-  "6113":{kw:"noise",zh:"声音；响声；噪音",i12:null,i18:null,i25:"6113noise.png"},
-  "6114":{kw:"fur",zh:"（某些动物的）浓密的软毛",i12:null,i18:null,i25:"6114fur.png"},
-  "6115":{kw:"open",zh:"开着的",i12:null,i18:null,i25:"6115open.png"},
-  "6116":{kw:"walk",zh:"行走",i12:null,i18:null,i25:"6116walk.png"},
-  "6117":{kw:"mine",zh:"我的",i12:null,i18:null,i25:"6117mine.png"},
-  "6118":{kw:"yours",zh:"你（们）的",i12:null,i18:null,i25:"6118yours.png"},
-  "6119":{kw:"his",zh:"他的",i12:null,i18:null,i25:"6119his.png"},
-  "6120":{kw:"hers",zh:"她的",i12:null,i18:null,i25:"6120hers.png"},
-  "6121":{kw:"theirs",zh:"他们的；她们的；它们的",i12:null,i18:"6121theirs.png",i25:null},
-  "6122":{kw:"ours",zh:"我们的",i12:null,i18:null,i25:"6122ours.png"},
-  "6123":{kw:"climbing",zh:"（正在）攀登；攀爬",i12:null,i18:"6123climbing.png",i25:null},
-  "6124":{kw:"eating",zh:"（正在）吃",i12:null,i18:"6124eating.png",i25:null},
-  "6125":{kw:"playing",zh:"（正在）玩耍",i12:null,i18:"6125playing.png",i25:null},
-  "6126":{kw:"jumping",zh:"（正在）跳",i12:null,i18:"6126jumping.png",i25:null},
-  "6127":{kw:"drinking",zh:"（正在）喝（水）",i12:null,i18:"6127drinking.png",i25:null},
-  "6128":{kw:"sleeping",zh:"（正在）睡觉",i12:null,i18:"6128sleeping.png",i25:null},
-  "6129":{kw:"each",zh:"每一；各个",i12:null,i18:null,i25:"6129each.png"},
-  "6130":{kw:"each other",zh:"相互",i12:"6130eachother.png",i18:null,i25:null},
-  "6131":{kw:"excited",zh:"兴奋的；激动的",i12:null,i18:"6131excited.png",i25:null},
-  "6132":{kw:"like",zh:"像…那样",i12:null,i18:null,i25:"6132like.png"},
-  "6133":{kw:"doing morning exercises",zh:"（正在）做早操",i12:"6133doingmorningexercises.png",i18:null,i25:null},
-  "6134":{kw:"having...class",zh:"（正在）上…课",i12:"6134havingclass.png",i18:null,i25:null},
-  "6135":{kw:"eating lunch",zh:"（正在）吃午饭",i12:"6135eatinglunch.png",i18:null,i25:null},
-  "6136":{kw:"reading a book",zh:"（正在）看书",i12:"6136readingabook.png",i18:null,i25:null},
-  "6137":{kw:"listening to music",zh:"（正在）听音乐",i12:"6137listeningtomusic.png",i18:null,i25:null},
-  "6138":{kw:"keep",zh:"保持某种状态",i12:null,i18:null,i25:"6138keep.png"},
-  "6139":{kw:"keep to the right",zh:"靠右",i12:"6139keeptotheright.png",i18:null,i25:null},
-  "6140":{kw:"keep your desk clean",zh:"保持你的课桌干净",i12:"6140keepyourdeskclean.png",i18:null,i25:null},
-  "6141":{kw:"talk quietly",zh:"小声讲话",i12:"6141talkquietly.png",i18:null,i25:null},
-  "6142":{kw:"turn",zh:"顺序",i12:null,i18:null,i25:"6142turn.png"},
-  "6143":{kw:"take turns",zh:"按顺序来",i12:"6143taketurns.png",i18:null,i25:null},
-  "6144":{kw:"bamboo",zh:"竹子",i12:null,i18:"6144bamboo.png",i25:null},
-  "6145":{kw:"its",zh:"它的；他的；她的",i12:null,i18:null,i25:"6145its.png"},
-  "6146":{kw:"show",zh:"给人看",i12:null,i18:null,i25:"6146show.png"},
-  "6147":{kw:"anything",zh:"任何事物",i12:null,i18:"6147anything.png",i25:null},
-  "6148":{kw:"else",zh:"另外；其他",i12:null,i18:null,i25:"6148else.png"},
-  "6149":{kw:"exhibition",zh:"展览",i12:"6149exhibition.png",i18:null,i25:null},
-  "6150":{kw:"say",zh:"说；讲",i12:null,i18:null,i25:"6150say.png"},
-  "6151":{kw:"have a look",zh:"看一看",i12:"6151havealook.png",i18:null,i25:null},
-  "6152":{kw:"sushi",zh:"寿司",i12:null,i18:null,i25:"6152sushi.png"},
-  "6153":{kw:"teach",zh:"教",i12:null,i18:null,i25:"6153teach.png"},
-  "6154":{kw:"sure",zh:"（表示同意）当然",i12:null,i18:null,i25:"6154sure.png"},
-  "6155":{kw:"Canadian",zh:"加拿大的",i12:null,i18:"6155Canadian.png",i25:null},
-  "6156":{kw:"Spanish",zh:"西班牙的",i12:null,i18:"6156Spanish.png",i25:null},
-  "7001":{kw:"science",zh:"科学",i12:null,i18:"7001science.png",i25:null},
-  "7002":{kw:"museum",zh:"博物馆",i12:null,i18:"7002museum.png",i25:null},
-  "7003":{kw:"post office",zh:"邮局",i12:"7003postoffice.png",i18:null,i25:null},
-  "7004":{kw:"bookstore",zh:"书店",i12:"7004bookstore.png",i18:null,i25:null},
-  "7005":{kw:"cinema",zh:"电影院",i12:null,i18:"7005cinema.png",i25:null},
-  "7006":{kw:"hospital",zh:"医院",i12:null,i18:"7006hospital.png",i25:null},
-  "7007":{kw:"crossing",zh:"十字路口",i12:null,i18:"7007crossing.png",i25:null},
-  "7008":{kw:"turn",zh:"转弯",i12:null,i18:null,i25:"7008turn.png"},
-  "7009":{kw:"left",zh:"左",i12:null,i18:null,i25:"7009left.png"},
-  "7010":{kw:"straight",zh:"笔直地",i12:null,i18:"7010straight.png",i25:null},
-  "7011":{kw:"right",zh:"右",i12:null,i18:null,i25:"7011right.png"},
-  "7012":{kw:"ask",zh:"问",i12:null,i18:null,i25:"7012ask.png"},
-  "7013":{kw:"sir",zh:"先生",i12:null,i18:null,i25:"7013sir.png"},
-  "7014":{kw:"interesting",zh:"有趣的",i12:"7014interesting.png",i18:null,i25:null},
-  "7015":{kw:"Italian",zh:"意大利的",i12:null,i18:"7015Italian.png",i25:null},
-  "7016":{kw:"restaurant",zh:"餐馆",i12:"7016restaurant.png",i18:null,i25:null},
-  "7017":{kw:"pizza",zh:"比萨饼",i12:null,i18:null,i25:"7017pizza.png"},
-  "7018":{kw:"street",zh:"大街；街道",i12:null,i18:"7018street.png",i25:null},
-  "7019":{kw:"get",zh:"到达",i12:null,i18:null,i25:"7019get.png"},
-  "7020":{kw:"BDS",zh:"北斗卫星导航系统",i12:null,i18:null,i25:"7020BDS.png"},
-  "7021":{kw:"gave",zh:"提供；交给",i12:null,i18:null,i25:"7021gave.png"},
-  "7022":{kw:"feature",zh:"特点",i12:null,i18:"7022feature.png",i25:null},
-  "7023":{kw:"follow",zh:"跟着",i12:null,i18:"7023follow.png",i25:null},
-  "7024":{kw:"far",zh:"远的",i12:null,i18:null,i25:"7024far.png"},
-  "7025":{kw:"tell",zh:"告诉",i12:null,i18:null,i25:"7025tell.png"},
-  "7026":{kw:"on foot",zh:"步行",i12:"7026onfoot.png",i18:null,i25:null},
-  "7027":{kw:"by",zh:"（表示方式）乘",i12:null,i18:null,i25:"7027by.png"},
-  "8001":{kw:"younger",zh:"更年轻的",i12:null,i18:"8001younger.png",i25:null},
-  "8002":{kw:"older",zh:"更年长的",i12:null,i18:null,i25:"8002older.png"},
-  "8003":{kw:"taller",zh:"更高的",i12:null,i18:"8003taller.png",i25:null},
-  "8004":{kw:"shorter",zh:"更矮的；更短的",i12:null,i18:"8004shorter.png",i25:null},
-  "8005":{kw:"longer",zh:"更长的",i12:null,i18:"8005longer.png",i25:null},
-  "8006":{kw:"thinner",zh:"更瘦的",i12:null,i18:"8006thinner.png",i25:null},
-  "8007":{kw:"heavier",zh:"更重的",i12:null,i18:"8007heavier.png",i25:null},
-  "8008":{kw:"bigger",zh:"更大的",i12:null,i18:"8008bigger.png",i25:null},
-  "8009":{kw:"smaller",zh:"更小的",i12:null,i18:"8009smaller.png",i25:null},
-  "8010":{kw:"stronger",zh:"更强壮的",i12:null,i18:"8010stronger.png",i25:null},
-  "8011":{kw:"dinosaur",zh:"恐龙",i12:null,i18:"8011dinosaur.png",i25:null},
-  "8012":{kw:"hall",zh:"大厅",i12:null,i18:null,i25:"8012hall.png"},
-  "8013":{kw:"metre",zh:"米",i12:null,i18:null,i25:"8013metre.png"},
-  "8014":{kw:"than",zh:"比",i12:null,i18:null,i25:"8014than.png"},
-  "8015":{kw:"both",zh:"两个都",i12:null,i18:null,i25:"8015both.png"},
-  "8016":{kw:"kilogram",zh:"千克；公斤",i12:null,i18:"8016kilogram.png",i25:null},
-  "8017":{kw:"countryside",zh:"乡村",i12:"8017countryside.png",i18:null,i25:null},
-  "8018":{kw:"lower",zh:"更低",i12:null,i18:null,i25:"8018lower.png"},
-  "8019":{kw:"shadow",zh:"阴影；影子",i12:null,i18:"8019shadow.png",i25:null},
-  "8020":{kw:"smarter",zh:"更聪明的",i12:null,i18:"8020smarter.png",i25:null},
-  "8021":{kw:"become",zh:"开始变得；变成",i12:null,i18:"8021become.png",i25:null},
-  "8022":{kw:"cleaned",zh:"打扫",i12:null,i18:"8022cleaned.png",i25:null},
-  "8023":{kw:"stayed",zh:"停留；待",i12:null,i18:"8023stayed.png",i25:null},
-  "8024":{kw:"washed",zh:"洗",i12:null,i18:"8024washed.png",i25:null},
-  "8025":{kw:"watched",zh:"看",i12:null,i18:"8025watched.png",i25:null},
-  "8026":{kw:"had",zh:"患病；得病",i12:null,i18:null,i25:"8026had.png"},
-  "8027":{kw:"had a cold",zh:"感冒",i12:"8027hadacold.png",i18:null,i25:null},
-  "8028":{kw:"slept",zh:"睡觉",i12:null,i18:null,i25:"8028slept.png"},
-  "8029":{kw:"read",zh:"读",i12:null,i18:null,i25:"8029read.png"},
-  "8030":{kw:"saw",zh:"看见",i12:null,i18:null,i25:"8030saw.png"},
-  "8031":{kw:"last",zh:"最近的；上一个的",i12:null,i18:null,i25:"8031last.png"},
-  "8032":{kw:"yesterday",zh:"昨天",i12:"8032yesterday.png",i18:null,i25:null},
-  "8033":{kw:"before",zh:"在...之前",i12:null,i18:"8033before.png",i25:null},
-  "8034":{kw:"drank",zh:"喝",i12:null,i18:null,i25:"8034drank.png"},
-  "8035":{kw:"show",zh:"演出",i12:null,i18:null,i25:"8035show.png"},
-  "8036":{kw:"magazine",zh:"杂志",i12:null,i18:"8036magazine.png",i25:null},
-  "8037":{kw:"better",zh:"更好的",i12:null,i18:"8037better.png",i25:null},
-  "8038":{kw:"faster",zh:"更快的",i12:null,i18:"8038faster.png",i25:null},
-  "8039":{kw:"hotel",zh:"旅馆",i12:null,i18:null,i25:"8039hotel.png"},
-  "8040":{kw:"fixed",zh:"修理",i12:null,i18:null,i25:"8040fixed.png"},
-  "8041":{kw:"broken",zh:"破损的",i12:null,i18:"8041broken.png",i25:null},
-  "8042":{kw:"lamp",zh:"台灯",i12:null,i18:null,i25:"8042lamp.png"},
-  "8043":{kw:"loud",zh:"喧闹的；大声的",i12:null,i18:null,i25:"8043loud.png"},
-  "8044":{kw:"enjoy",zh:"享受...乐趣；喜爱",i12:null,i18:null,i25:"8044enjoy.png"},
-  "8045":{kw:"stay",zh:"暂住；逗留",i12:null,i18:null,i25:"8045stay.png"},
-  "8046":{kw:"went",zh:"去",i12:null,i18:null,i25:"8046went.png"},
-  "8047":{kw:"camp",zh:"野营",i12:null,i18:null,i25:"8047camp.png"},
-  "8048":{kw:"went camping",zh:"（尤指在假日）野营",i12:"8048wentcamping.png",i18:null,i25:null},
-  "8049":{kw:"fish",zh:"钓鱼；捕鱼",i12:null,i18:null,i25:"8049fish.png"},
-  "8050":{kw:"went fishing",zh:"去钓鱼",i12:"8050wentfishing.png",i18:null,i25:null},
-  "8051":{kw:"rode",zh:"骑（马；自行车）",i12:null,i18:null,i25:"8051rode.png"},
-  "8052":{kw:"hurt",zh:"（使）受伤",i12:null,i18:null,i25:"8052hurt.png"},
-  "8053":{kw:"ate",zh:"吃",i12:null,i18:null,i25:"8053ate.png"},
-  "8054":{kw:"took",zh:"拍照",i12:null,i18:null,i25:"8054took.png"},
-  "8055":{kw:"took pictures",zh:"照相",i12:"8055tookpictures.png",i18:null,i25:null},
-  "8056":{kw:"bought",zh:"买",i12:null,i18:"8056bought.png",i25:null},
-  "8057":{kw:"gift",zh:"礼物",i12:null,i18:null,i25:"8057gift.png"},
-  "8058":{kw:"fell",zh:"摔倒",i12:null,i18:null,i25:"8058fell.png"},
-  "8059":{kw:"off",zh:"从（某处）落下",i12:null,i18:null,i25:"8059off.png"},
-  "8060":{kw:"mule",zh:"骡子",i12:null,i18:null,i25:"8060mule.png"},
-  "8061":{kw:"Turpan",zh:"吐鲁番",i12:null,i18:"8061Turpan.png",i25:null},
-  "8062":{kw:"could",zh:"能",i12:null,i18:null,i25:"8062could.png"},
-  "8063":{kw:"till",zh:"直到",i12:null,i18:null,i25:"8063till.png"},
-  "8064":{kw:"beach",zh:"海滩；沙滩",i12:null,i18:null,i25:"8064beach.png"},
-  "8065":{kw:"basket",zh:"篮；筐",i12:null,i18:"8065basket.png",i25:null},
-  "8066":{kw:"part",zh:"角色",i12:null,i18:null,i25:"8066part.png"},
-  "8067":{kw:"licked",zh:"舔",i12:null,i18:"8067licked.png",i25:null},
-  "8068":{kw:"laughed",zh:"笑",i12:null,i18:"8068laughed.png",i25:null},
-  "8069":{kw:"dining hall",zh:"饭厅",i12:"8069dininghall.png",i18:null,i25:null},
-  "8070":{kw:"grass",zh:"草坪",i12:null,i18:null,i25:"8070grass.png"},
-  "8071":{kw:"gym",zh:"体育馆",i12:null,i18:null,i25:"8071gym.png"},
-  "8072":{kw:"ago",zh:"以前",i12:null,i18:null,i25:"8072ago.png"},
-  "8073":{kw:"cycling",zh:"骑自行车运动（或活动）",i12:null,i18:"8073cycling.png",i25:null},
-  "8074":{kw:"go cycling",zh:"去骑自行车",i12:"8074gocycling.png",i18:null,i25:null},
-  "8075":{kw:"ice-skate",zh:"滑冰",i12:"8075iceskate.png",i18:null,i25:null},
-  "8076":{kw:"badminton",zh:"羽毛球运动",i12:"8076badminton.png",i18:null,i25:null},
-  "8077":{kw:"star",zh:"星",i12:null,i18:null,i25:"8077star.png"},
-  "8078":{kw:"easy",zh:"容易的",i12:null,i18:null,i25:"8078easy.png"},
-  "8079":{kw:"look up",zh:"（在词典中或通过电脑）查阅",i12:"8079lookup.png",i18:null,i25:null},
-  "8080":{kw:"Internet",zh:"互联网",i12:null,i18:"8080Internet.png",i25:null},
-  "8081":{kw:"different",zh:"不同的",i12:"8081different.png",i18:null,i25:null},
-  "8082":{kw:"active",zh:"积极的；活跃的",i12:null,i18:"8082active.png",i25:null},
-  "8083":{kw:"race",zh:"赛跑",i12:null,i18:null,i25:"8083race.png"},
-  "8084":{kw:"nothing",zh:"没有什么",i12:null,i18:"8084nothing.png",i25:null},
-  "8085":{kw:"thought",zh:"想",i12:null,i18:"8085thought.png",i25:null},
-  "8086":{kw:"felt",zh:"感觉",i12:null,i18:null,i25:"8086felt.png"},
-  "8087":{kw:"cheetah",zh:"猎豹",i12:null,i18:"8087cheetah.png",i25:null},
-  "8088":{kw:"trip",zh:"绊倒",i12:null,i18:null,i25:"8088trip.png"},
-  "8089":{kw:"woke",zh:"醒",i12:null,i18:null,i25:"8089woke.png"},
-  "8090":{kw:"dream",zh:"梦",i12:null,i18:null,i25:"8090dream.png"},
-};
-const sb = createClient("https://ptxkeywyujftzusjvrrh.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0eGtleXd5dWpmdHp1c2p2cnJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NTY3NTEsImV4cCI6MjA5NDEzMjc1MX0.Y5AUQR4emWXbBcW_NB_yGb2FrrjBgIA5DK-rcyaISqg");
-const CLD_NAME="deretv9xp",CLD_PRESET="picreview";
-async function cldUpload(file){
-  const fd=new FormData();fd.append("file",file);fd.append("upload_preset",CLD_PRESET);
-  const r=await fetch("https://api.cloudinary.com/v1_1/"+CLD_NAME+"/image/upload",{method:"POST",body:fd});
-  if(!r.ok){const t=await r.text();throw new Error("Cloudinary "+r.status+": "+t);}
-  return await r.json();
-}
-function cldVariant(url,t){if(!url||url.indexOf("res.cloudinary.com")===-1)return url;return url.replace("/upload/","/upload/"+t+"/");}
-function imgThumb(url){return cldVariant(url,"w_300,h_300,c_fill,q_auto,f_auto");}
-function imgMid(url){return cldVariant(url,"w_1280,q_auto,f_auto");}
-let selectModeOn=!1,selectedIds=new Set();
-function refreshBatchBar(){
-  const iv=document.getElementById("imagesView"),bar=document.getElementById("batchBar");
-  if(iv.style.display==="block"){
-    bar.classList.add("visible");
-    document.getElementById("btnBatchDelete").style.display=currentRole==="uploader"?"inline-block":"none";
-  }else{
-    bar.classList.remove("visible");
-    selectedIds.clear();selectModeOn=!1;
-    const sm=document.getElementById("chkSelectMode");if(sm)sm.checked=!1;
-    const sa=document.getElementById("chkSelectAll");if(sa)sa.checked=!1;
-  }
-  updateBatchCount();
-}
-function updateBatchCount(){const el=document.getElementById("batchCount");if(el)el.textContent="已选 "+selectedIds.size+" 张";}
 
-// 登录
-const loginMask=document.getElementById("loginMask"),nameInput=document.getElementById("nameInput"),enterBtn=document.getElementById("enterBtn"),roleLabel=document.getElementById("roleLabel"),logoutBtn=document.getElementById("logoutBtn");
-let currentUser=localStorage.getItem("reviewUser")||"",currentRole=localStorage.getItem("reviewRole")||"",selectedRole="";
-document.querySelectorAll(".role-card").forEach(c=>{c.addEventListener("click",()=>{document.querySelectorAll(".role-card").forEach(x=>x.classList.remove("selected"));c.classList.add("selected");selectedRole=c.dataset.role;});});
-function applyLogin(){
-  if(!currentUser||!currentRole)return;
-  loginMask.style.display="none";
-  const badge=currentRole==="uploader"?'<span class="role-badge-uploader">上传</span>':'<span class="role-badge-reviewer">审核</span>';
-  roleLabel.innerHTML=currentUser+badge;
-  document.getElementById("uploadArea").style.display=currentRole==="uploader"?"block":"none";
-  document.getElementById("reviewerSection").style.display=currentRole==="reviewer"?"block":"none";
-  document.getElementById("btnApprove").style.display=currentRole==="reviewer"?"inline-block":"none";
-  document.getElementById("btnReject").style.display=currentRole==="reviewer"?"inline-block":"none";
-  document.getElementById("btnDelete").style.display=currentRole==="uploader"?"inline-block":"none";
-  refreshBatchBar();
-  if("Notification" in window&&Notification.permission==="default")Notification.requestPermission();
-  subscribeNotifications();
-  checkMissedNotifications();
-}
-enterBtn.addEventListener("click",()=>{const n=nameInput.value.trim();if(!n){nameInput.style.border="2px solid red";return;}if(!selectedRole){document.querySelectorAll(".role-card").forEach(c=>c.style.border="2px solid red");return;}currentUser=n;currentRole=selectedRole;localStorage.setItem("reviewUser",n);localStorage.setItem("reviewRole",selectedRole);applyLogin();});
-nameInput.addEventListener("keydown",e=>{if(e.key==="Enter")enterBtn.click();});
-logoutBtn.addEventListener("click",()=>{localStorage.removeItem("reviewUser");localStorage.removeItem("reviewRole");currentUser="";currentRole="";selectedRole="";document.querySelectorAll(".role-card").forEach(c=>c.classList.remove("selected"));loginMask.style.display="flex";nameInput.value="";});
-applyLogin();
+<hr class="section-divider">
 
-// 项目
-let currentProjectId=null,currentProjectName="";
-const projectsView=document.getElementById("projectsView"),imagesView=document.getElementById("imagesView"),projectsGrid=document.getElementById("projectsGrid"),projectTitle=document.getElementById("projectTitle"),headerTitle=document.getElementById("headerTitle");
+<!-- ─── FEATURES ─────────────────────────────────────────────────────── -->
+<section id="features">
+  <div class="section-label">features</div>
+  <h2>一个工具，搞定所有整理</h2>
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">GAME_DETECT</div>
+      <h3>智能游戏识别</h3>
+      <p>自动扫描 Steam、Epic、GOG、暴雪、育碧等主流启动器路径，结合体积 + exe + 目录结构启发式识别，无漏报。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">AI_CLASSIFY</div>
+      <h3>AI 资料分类归集</h3>
+      <p>按文件后缀（.safetensors .gguf .pt …）和目录名关键字，自动区分模型权重、训练数据集、知识库文档四个类别。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">SAVE_SYNC</div>
+      <h3>存档跟随迁移</h3>
+      <p>在 Documents、AppData、Saved Games 里模糊匹配存档目录，与游戏本体一起搬走，存档一条不丢。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">JUNCTION</div>
+      <h3>目录联接无感知</h3>
+      <p>文件搬走后在原位建 NTFS Junction，启动器、游戏内部的路径全部不变，零配置即用。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">DRY_RUN</div>
+      <h3>先预览再执行</h3>
+      <p>默认 dry-run 模式生成 plan.json 整理方案，审核无误后加 <span class="code-inline">-Apply</span> 参数再实际移动。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">ROLLBACK</div>
+      <h3>一键回滚</h3>
+      <p>每次操作都写 op-log.json，随时反向执行：删 Junction → robocopy 复制回原位 → 清理新位置。</p>
+    </div>
+  </div>
+</section>
 
-async function loadProjects(){
-  const{data:projects}=await sb.from("projects").select("*").order("created_at",{ascending:false});
-  const counts={};
-  const pending={};
-  const{data:imgs}=await sb.from("images").select("id,project_id,status");
-  (imgs||[]).forEach(img=>{
-    const k=img.project_id||"__uncat__";
-    counts[k]=(counts[k]||0)+1;
-    if(img.status==="pending")pending[k]=(pending[k]||0)+1;
-  });
-  projectsGrid.innerHTML="";
-  const ucTotal=counts["__uncat__"]||0;
-  const ucPending=pending["__uncat__"]||0;
-  if(ucTotal>0){const card=makeProjectCard("__uncat__","未分类",ucTotal,ucPending,"系统","");projectsGrid.appendChild(card);}
-  (projects||[]).forEach(p=>{
-    const total=counts[p.id]||0;const pend=pending[p.id]||0;
-    projectsGrid.appendChild(makeProjectCard(p.id,p.name,total,pend,p.created_by,p.created_at));
-  });
-}
+<hr class="section-divider">
 
-function makeProjectCard(id,name,total,pend,createdBy,createdAt){
-  const card=document.createElement("div");card.className="folder-card";
-  const dateStr=createdAt?fmt(createdAt):"";
-  card.innerHTML='<div class="folder-icon">📁</div><div class="folder-name">'+name+'</div><div class="folder-stats"><span class="badge badge-pending">待审 '+pend+'</span><span class="badge" style="background:#e9ecef;color:#555">共 '+total+' 张</span></div><div class="folder-meta">'+(createdBy||"")+(dateStr?" · "+dateStr:"")+'</div>';
-  card.addEventListener("click",()=>openProject(id,name));
-  return card;
-}
+<!-- ─── HOW TO ──────────────────────────────────────────────────────── -->
+<section id="howto">
+  <div class="section-label">how_to_use</div>
+  <h2>三步开始<em>整理</em></h2>
+  <div class="steps">
+    <div class="step active">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <h3>下载 &amp; 编辑配置</h3>
+        <p>把 PCOrganizer 文件夹复制到目标电脑，用文本编辑器打开 <span class="code-inline">config.psd1</span>，确认游戏迁移盘符和 AI 资料根目录。也可以用下方的配置生成器自动生成。</p>
+        <pre class="code-block"><span class="c"># config.psd1 关键项</span>
+GameTargets    = @('D:\Games', 'E:\Games')
+AIRoot         = 'E:\AI'
+AIDriveLetter  = 'F'
+GameMinSizeGB  = 1</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <h3>以管理员身份运行</h3>
+        <p>右键 PowerShell → 以管理员身份运行，进入脚本目录执行（建 Junction 需要管理员权限）：</p>
+        <pre class="code-block"><span class="c"># 仅预览，不移动文件（推荐先跑这个）</span>
+powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1"
 
-document.getElementById("btnNewFolder").addEventListener("click",async()=>{
-  if(!currentUser){alert("请先在最上面点「切换」登录");return;}
-  const name=prompt("项目名称：");
-  if(!name||!name.trim())return;
-  await sb.from("projects").insert({name:name.trim(),created_by:currentUser,created_at:new Date().toISOString()});
-  loadProjects();
-});
+<span class="c"># 实际执行</span>
+powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <h3>按菜单顺序操作</h3>
+        <p>推荐操作顺序：扫描 → 预览方案 → 确认无误 → 执行迁移。</p>
+        <table class="menu-table">
+          <thead><tr><th>选项</th><th>功能</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td class="menu-key">1</td><td class="menu-desc">扫描磁盘 + 文件</td><td class="menu-note">生成 inventory_*.json</td></tr>
+            <tr><td class="menu-key">2</td><td class="menu-desc">生成整理方案</td><td class="menu-note">dry-run，生成 plan_*.json</td></tr>
+            <tr><td class="menu-key">3</td><td class="menu-desc">执行游戏迁移</td><td class="menu-note"><span class="badge badge-ok">存档跟随</span></td></tr>
+            <tr><td class="menu-key">4</td><td class="menu-desc">AI 资料归集</td><td class="menu-note">初始化 AI 盘 + 迁移</td></tr>
+            <tr><td class="menu-key">5</td><td class="menu-desc">升级 AI 盘为真分区</td><td class="menu-note"><span class="badge badge-warn">高危</span> 三次确认</td></tr>
+            <tr><td class="menu-key">6</td><td class="menu-desc">回滚上一次操作</td><td class="menu-note">按日志反向恢复</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
 
-headerTitle.addEventListener("click",()=>{if(currentProjectId!==null)goBack();});
+<hr class="section-divider">
 
-let currentProjectMeta=null;
-async function loadProjectMeta(id){
-  currentProjectMeta=null;
-  if(!id||id==="__uncat__")return;
-  const{data}=await sb.from("projects").select("metadata").eq("id",id).maybeSingle();
-  currentProjectMeta=(data&&data.metadata)||{};
-  document.getElementById("btnClearTable").style.display=currentProjectMeta&&currentProjectMeta.table?"":"none";
-}
-function parseCsv(text){
-  const rows=[];let row=[],cell="",inQ=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(inQ){
-      if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}
-      else if(c==='"')inQ=false;
-      else cell+=c;
-    }else{
-      if(c==='"')inQ=true;
-      else if(c===','){row.push(cell);cell="";}
-      else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell="";}
-      else if(c!=='\r')cell+=c;
+<!-- ─── CONFIG BUILDER ────────────────────────────────────────────────── -->
+<section id="config-section">
+  <div class="section-label">config_builder</div>
+  <h2>在线生成 <em>config.psd1</em></h2>
+  <div class="config-grid">
+    <div class="config-form">
+      <div class="field">
+        <label>游戏迁移目标盘（第一优先级）</label>
+        <select id="f-game1">
+          <option value="C:\Games">C:\Games</option>
+          <option value="D:\Games" selected>D:\Games</option>
+          <option value="E:\Games">E:\Games</option>
+          <option value="F:\Games">F:\Games</option>
+        </select>
+        <div class="field-hint">脚本自动选剩余空间最大的盘</div>
+      </div>
+      <div class="field">
+        <label>游戏迁移目标盘（第二优先级）</label>
+        <select id="f-game2">
+          <option value="">（不设第二目标）</option>
+          <option value="C:\Games">C:\Games</option>
+          <option value="D:\Games">D:\Games</option>
+          <option value="E:\Games" selected>E:\Games</option>
+          <option value="F:\Games">F:\Games</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>AI 资料根目录</label>
+        <input id="f-airoot" type="text" value="E:\AI" placeholder="E:\AI">
+        <div class="field-hint">存放 models / datasets / docs / misc</div>
+      </div>
+      <div class="field">
+        <label>AI 虚拟盘盘符（subst 映射）</label>
+        <select id="f-ailetter">
+          <option value="F" selected>F:</option>
+          <option value="G">G:</option>
+          <option value="H">H:</option>
+          <option value="I">I:</option>
+          <option value="Z">Z:</option>
+        </select>
+        <div class="field-hint">该盘符会映射到 AI 根目录，确保目标机器上该盘符未被占用</div>
+      </div>
+      <div class="field">
+        <label>游戏最小体积阈值 (GB)</label>
+        <input id="f-minsz" type="number" min="0.1" step="0.5" value="1">
+        <div class="field-hint">小于此体积的目录不视为游戏（白名单除外）</div>
+      </div>
+      <div class="field">
+        <label>游戏黑名单（逗号分隔，支持通配符）</label>
+        <input id="f-blacklist" type="text" value="WindowsApps, Microsoft.*">
+        <div class="field-hint">这些目录名的游戏将被跳过</div>
+      </div>
+    </div>
+
+    <div class="config-preview">
+      <div class="config-preview-bar">
+        <span>config.psd1</span>
+        <button class="btn-download" onclick="downloadConfig()">下载</button>
+      </div>
+      <div id="config-output"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ─── AI DRIVE ───────────────────────────────────────────────────── -->
+<section id="ai-drive">
+  <div class="section-label">ai_drive</div>
+  <h2>AI 盘<em>两阶段</em>方案</h2>
+  <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:1.5rem;max-width:600px">
+    没有空闲分区？没关系。先用虚拟盘顶着，等游戏搬走腾出空间再升级成真分区。
+  </p>
+  <div class="phase-cards">
+    <div class="phase-card">
+      <div class="phase-title">// 阶段一 · 立即可用</div>
+      <h3>subst 虚拟盘</h3>
+      <ul>
+        <li>在 E:\AI 下建 models / datasets / docs / misc</li>
+        <li>用 <code class="code-inline">subst F: E:\AI</code> 映射虚拟盘</li>
+        <li>写开机启动项，重启后自动恢复 F:</li>
+        <li>Ollama / ComfyUI / LM Studio 直接填 F:\models\xxx</li>
+      </ul>
+    </div>
+    <div class="phase-card">
+      <div class="phase-title">// 阶段二 · 真实分区</div>
+      <h3>压缩 E 盘新建分区</h3>
+      <ul>
+        <li>检查 E 盘可压缩空间是否足够</li>
+        <li>三次确认 → 压缩 E 盘 → 新建 NTFS 分区</li>
+        <li>自动把 E:\AI 内容迁移到新分区根目录</li>
+        <li>删除旧目录和 subst 开机项</li>
+      </ul>
+    </div>
+  </div>
+  <p style="color:var(--text-muted);font-family:var(--mono);font-size:0.75rem;margin-top:1rem">
+    // 阶段二操作前请先备份重要数据到外接存储
+  </p>
+</section>
+
+<!-- ─── FOOTER ─────────────────────────────────────────────────────── -->
+<footer>
+  <span>PC Organizer · PowerShell 5.1+ · Windows 10/11 · NTFS</span>
+  &nbsp;·&nbsp;
+  <a href="https://github.com" id="footer-gh-link">GitHub</a>
+  &nbsp;·&nbsp;
+  <span>MIT License</span>
+</footer>
+
+<!-- ─── SCRIPTS ────────────────────────────────────────────────────── -->
+<script>
+/* ── Hero title typewriter ──────────────────────────────────────────── */
+(function(){
+  const lines = ['PC 文件', '智能整理工具'];
+  let full = lines.join('\n'), idx = 0;
+  const el = document.getElementById('hero-title');
+  const cursor = el.querySelector('.cursor-blink');
+  function tick(){
+    if(idx <= full.length){
+      const txt = full.slice(0,idx).replace('\n','<br>');
+      el.innerHTML = txt + '<span class="cursor-blink"></span>';
+      idx++;
+      setTimeout(tick, idx < full.length ? 60 : 0);
     }
   }
-  if(cell.length||row.length){row.push(cell);rows.push(row);}
-  return rows;
-}
-async function importTableCsv(file){
-  if(!currentProjectId||currentProjectId==="__uncat__"){showCopyToast("未分类项目不支持导入表格");return;}
-  const text=await file.text();
-  const rows=parseCsv(text).filter(r=>r.some(c=>(c||"").trim()));
-  if(!rows.length){showCopyToast("CSV 为空");return;}
-  let start=0;
-  const first=rows[0].map(c=>(c||"").trim());
-  if(first.some(c=>/序号|关键词|造句|key|sentence|id/i.test(c)))start=1;
-  const map={};
-  for(let i=start;i<rows.length;i++){
-    const r=rows[i].map(c=>(c||"").trim());
-    const k=r[0];if(!k)continue;
-    map[k]={kw:r[1]||"",s:r[2]||""};
-  }
-  const count=Object.keys(map).length;
-  if(!count){showCopyToast("没有解析到有效行");return;}
-  const meta={...(currentProjectMeta||{}),table:map,table_uploaded_by:currentUser,table_uploaded_at:new Date().toISOString()};
-  const{error}=await sb.from("projects").update({metadata:meta}).eq("id",currentProjectId);
-  if(error){showCopyToast("保存失败："+error.message);return;}
-  currentProjectMeta=meta;
-  document.getElementById("btnClearTable").style.display="";
-  showCopyToast("已导入 "+count+" 行");
-  if(currentView==="table")renderTable();
-}
-async function clearProjectTable(){
-  if(!currentProjectId)return;
-  if(!confirm("确定清空当前项目的导入表格？"))return;
-  const meta={...(currentProjectMeta||{})};delete meta.table;delete meta.table_uploaded_by;delete meta.table_uploaded_at;
-  await sb.from("projects").update({metadata:meta}).eq("id",currentProjectId);
-  currentProjectMeta=meta;
-  document.getElementById("btnClearTable").style.display="none";
-  showCopyToast("已清空表格");
-  if(currentView==="table")renderTable();
-}
-document.getElementById("btnImportTable").addEventListener("click",()=>document.getElementById("tableFileInput").click());
-document.getElementById("tableFileInput").addEventListener("change",e=>{const f=e.target.files[0];if(f)importTableCsv(f);e.target.value="";});
-document.getElementById("btnClearTable").addEventListener("click",clearProjectTable);
+  tick();
+})();
 
-function openProject(id,name){
-  currentProjectId=id;currentProjectName=name;
-  projectsView.style.display="none";imagesView.style.display="block";
-  projectTitle.textContent=name;headerTitle.textContent="PicReview / "+name;
-  activeFilter="all";document.querySelectorAll(".filter-bar button[data-filter]").forEach(b=>b.classList.remove("active"));document.querySelector(".filter-bar button[data-filter='all']").classList.add("active");
-  document.getElementById("imgSearch").value="";
-  refreshBatchBar();loadProjectMeta(id);loadImages();
-}
+/* ── Terminal demo typewriter ───────────────────────────────────────── */
+(function(){
+  const lines = [
+    {t:'prompt', v:'PS C:\\PCOrganizer> '},
+    {t:'cmd',    v:'powershell -ExecutionPolicy Bypass -File .\\Organize-PC.ps1'},
+    {t:'out',    v:''},
+    {t:'sep',    v:'═══════════════════════════════════════'},
+    {t:'info',   v:'  PC 文件智能整理工具  ·  模式: DRY-RUN'},
+    {t:'sep',    v:'═══════════════════════════════════════'},
+    {t:'out',    v:''},
+    {t:'ok',     v:'正在扫描磁盘……'},
+    {t:'out',    v:'  C:  (SSD)  476.9 GB  剩余 38.4 GB'},
+    {t:'out',    v:'  D:  (SSD)  931.5 GB  剩余 412.1 GB  ← 游戏目标'},
+    {t:'out',    v:'  E:  (HDD) 1863.0 GB  剩余 890.3 GB'},
+    {t:'out',    v:''},
+    {t:'ok',     v:'识别到 23 个游戏目录，合计 387.4 GB'},
+    {t:'ok',     v:'识别到 6 个 AI 资料目录，合计 42.1 GB'},
+    {t:'out',    v:''},
+    {t:'ok',     v:'  ✓ Cyberpunk 2077 (68.3 GB)  [存档: 1 处]'},
+    {t:'ok',     v:'  ✓ Elden Ring (44.7 GB)       [存档: 2 处]'},
+    {t:'warn',   v:'  ✗ WindowsApps (黑名单，已跳过)'},
+    {t:'out',    v:''},
+    {t:'info',   v:'方案已保存: logs\\plan_20260527_102301.json'},
+  ];
 
-function goBack(){currentProjectId=null;currentProjectName="";projectsView.style.display="block";imagesView.style.display="none";headerTitle.textContent="PicReview";refreshBatchBar();loadProjects();}
-document.getElementById("btnBack").addEventListener("click",goBack);
-
-sb.channel("proj-ch").on("postgres_changes",{event:"*",schema:"public",table:"projects"},()=>{if(currentProjectId===null)loadProjects();}).subscribe();
-document.getElementById("imgSearch").addEventListener("input",()=>renderGrid());
-document.querySelectorAll(".level-btn").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const already=btn.classList.contains("active");
-    document.querySelectorAll(".level-btn").forEach(b=>b.classList.remove("active"));
-    if(!already)btn.classList.add("active");
-    renderGrid();
-  });
-});
-loadProjects();
-
-// 上传
-const uploadArea=document.getElementById("uploadArea"),fileInput=document.getElementById("fileInput"),progressBar=document.getElementById("progressBar"),uploadProgress=document.getElementById("uploadProgress"),uploadStatus=document.getElementById("uploadStatus");
-uploadArea.addEventListener("click",()=>fileInput.click());
-uploadArea.addEventListener("dragover",e=>{e.preventDefault();uploadArea.style.background="#dbeafe";});
-uploadArea.addEventListener("dragleave",()=>{uploadArea.style.background="";});
-uploadArea.addEventListener("drop",e=>{e.preventDefault();uploadArea.style.background="";handleFiles([...e.dataTransfer.files]);});
-fileInput.addEventListener("change",()=>handleFiles([...fileInput.files]));
-async function hashFile(file){const buf=await file.arrayBuffer();const h=await crypto.subtle.digest("SHA-256",buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("");}
-async function handleFiles(files){
-  const imgs=files.filter(f=>f.type.startsWith("image/"));if(!imgs.length)return;
-  uploadProgress.style.display="block";
-  let done=0,skipped=0,replaced=0,inserted=0;const total=imgs.length;
-  const pid=currentProjectId==="__uncat__"?null:currentProjectId;
-  async function uploadOne(f){
-    const hash=await hashFile(f);
-    let qn=sb.from("images").select("id").eq("filename",f.name).limit(1);
-    if(pid===null)qn=qn.is("project_id",null);else qn=qn.eq("project_id",pid);
-    const{data:sameName}=await qn;
-    if(sameName&&sameName.length){
-      try{
-        const j=await cldUpload(f);
-        await sb.from("images").update({url:j.secure_url,storage_path:j.public_id,file_hash:hash,status:"pending",updated_at:new Date().toISOString(),uploader:currentUser,replaced_by:currentUser,reject_reason:"",tags:[],claimed_by:null,claimed_at:null}).eq("id",sameName[0].id);
-        replaced++;
-      }catch(err){console.error(err);}
-      done++;progressBar.style.width=(done/total*100)+"%";
-      uploadStatus.textContent="处理中 "+done+" / "+total+"（同名替换）";
-      return;
-    }
-    const{data:byHash}=await sb.from("images").select("id,filename").eq("file_hash",hash).limit(1);
-    if(byHash&&byHash.length){skipped++;done++;progressBar.style.width=(done/total*100)+"%";uploadStatus.textContent="跳过重复："+f.name;return;}
-    try{
-      const j=await cldUpload(f);
-      await sb.from("images").insert({url:j.secure_url,storage_path:j.public_id,filename:f.name,file_hash:hash,uploader:currentUser,status:"pending",tags:[],comments:[],project_id:pid,created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
-      inserted++;
-    }catch(err){console.error(err);uploadStatus.textContent="上传失败："+f.name+" "+err.message;}
-    done++;progressBar.style.width=(done/total*100)+"%";uploadStatus.textContent="上传中 "+done+" / "+total;
-  }
-  for(let i=0;i<imgs.length;i+=4)await Promise.allSettled(imgs.slice(i,i+4).map(uploadOne));
-  uploadStatus.textContent="完成：新上传 "+inserted+"，同名替换 "+replaced+(skipped>0?"，跳过重复 "+skipped:"");
-  if(inserted+replaced>=3)await recordUploadNotification(inserted+replaced);
-  setTimeout(()=>{uploadProgress.style.display="none";progressBar.style.width="0";uploadStatus.textContent="";},4500);
-  fileInput.value="";
-}
-
-// 通知系统
-function showToast(html,duration=7000){
-  const c=document.getElementById("toastContainer");
-  const t=document.createElement("div");t.className="toast";
-  t.innerHTML='<span>'+html+'</span><button class="toast-close" title="关闭">×</button>';
-  t.querySelector(".toast-close").addEventListener("click",()=>t.remove());
-  c.appendChild(t);
-  if(duration>0)setTimeout(()=>t&&t.remove(),duration);
-}
-function sendBrowserNotif(title,body){
-  if("Notification" in window&&Notification.permission==="granted"&&document.hidden)
-    new Notification(title,{body});
-}
-async function recordUploadNotification(count){
-  try{
-    await sb.from("notifications").insert({uploader:currentUser,count,project_name:currentProjectName||"未分类",created_at:new Date().toISOString()});
-  }catch(e){console.warn("通知写入失败",e);}
-}
-function subscribeNotifications(){
-  sb.channel("notif-ch").on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications"},payload=>{
-    const n=payload.new;
-    if(n.uploader===currentUser)return;
-    const msg='📤 <strong>'+n.uploader+'</strong> 在「'+n.project_name+'」上传了 <strong>'+n.count+'</strong> 张新图片';
-    showToast(msg);
-    sendBrowserNotif("PicReview 有新图片",n.uploader+" 在「"+n.project_name+"」上传了 "+n.count+" 张");
-  }).subscribe();
-}
-async function checkMissedNotifications(){
-  const lastVisit=localStorage.getItem("lastVisit")||new Date(0).toISOString();
-  localStorage.setItem("lastVisit",new Date().toISOString());
-  try{
-    const{data}=await sb.from("notifications").select("*").gt("created_at",lastVisit).neq("uploader",currentUser).order("created_at",{ascending:false}).limit(20);
-    if(!data||!data.length)return;
-    const total=data.reduce((s,n)=>s+n.count,0);
-    const names=[...new Set(data.map(n=>n.uploader))].join("、");
-    const folders=[...new Set(data.map(n=>n.project_name))].join("、");
-    showToast('👋 你不在时，<strong>'+names+'</strong> 在「'+folders+'」共上传了 <strong>'+total+'</strong> 张新图片',10000);
-  }catch(e){console.warn("通知查询失败",e);}
-}
-
-// 图片列表
-const grid=document.getElementById("grid"),emptyHint=document.getElementById("emptyHint"),statsBar=document.getElementById("statsBar");
-let allDocs=[],activeFilter="all",currentView="grid";
-function parseImgName(fn){
-  const base=(fn||"").replace(/\.[^.]+$/,"");
-  const parts=base.split("_");
-  const lvM=parts[0]&&parts[0].match(/L(\d+)/i);
-  const lv=lvM?parseInt(lvM[1]):99;
-  const lastPart=(parts[parts.length-1]||"").trim();
-  let scene;
-  if(lastPart==="封面"||lastPart.toLowerCase()==="cover")scene=-1;
-  else if(lastPart==="封底"||/^back.?cover$/i.test(lastPart))scene=99999;
-  else{const scM=lastPart.match(/\d+/);scene=scM?parseInt(scM[0]):0;}
-  const book=parts.length>=2?parts.slice(1,-1).join("_"):"";
-  return{lv,book,scene};
-}
-function sortImages(docs){
-  const isEng=currentProjectName&&currentProjectName.includes("英语绘本");
-  if(isEng){
-    return[...docs].sort((a,b)=>{
-      const pa=parseImgName(a.filename),pb=parseImgName(b.filename);
-      const bc=pa.book.localeCompare(pb.book,"en");
-      if(bc!==0)return bc;
-      return pa.scene-pb.scene;
-    });
-  }
-  return[...docs].sort((a,b)=>(b.filename||"").localeCompare(a.filename||""));
-}
-async function loadImages(){
-  let q=sb.from("images").select("*");
-  if(currentProjectId==="__uncat__")q=q.is("project_id",null);
-  else q=q.eq("project_id",currentProjectId);
-  const{data}=await q;allDocs=sortImages(data||[]);renderGrid();
-}
-sb.channel("img-ch").on("postgres_changes",{event:"*",schema:"public",table:"images"},()=>{if(currentProjectId!==null)loadImages();else loadProjects();}).subscribe();
-function itemStatus(item){return(item.claimed_by&&item.status==="rejected")?"claimed":item.status;}
-function statusLabel(s){return{pending:"待审核",approved:"已通过",rejected:"已打回",claimed:"已认领"}[s]||s;}
-function showCopyToast(msg){
-  const t=document.getElementById("copyToast");t.textContent=msg;t.style.opacity="1";
-  clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.opacity="0",2000);
-}
-function copyIds(){
-  const ids=[...document.querySelectorAll("#statusTbody tr")]
-    .map(tr=>(tr.querySelector("td")||{}).textContent||"")
-    .map(t=>t.trim()).filter(Boolean).join(" ");
-  console.log("[copyIds] 抓到序号:",ids?ids.split(" ").length:0,"个");
-  if(!ids){showCopyToast("没有可复制的序号");return;}
-  const n=ids.split(" ").length;
-  function execFallback(){
-    try{
-      const ta=document.createElement("textarea");
-      ta.value=ids;ta.style.cssText="position:fixed;top:0;left:0;width:1em;height:1em;padding:0;border:0;opacity:0";
-      document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,ids.length);
-      const ok=document.execCommand("copy");document.body.removeChild(ta);
-      console.log("[copyIds] execCommand 结果:",ok);
-      if(ok){showCopyToast("已复制 "+n+" 个序号");}
-      else{window.prompt("自动复制失败，请按 Ctrl+C 手动复制：",ids);}
-    }catch(e){console.error("[copyIds] fallback错误:",e);window.prompt("复制失败，请手动复制：",ids);}
-  }
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(ids)
-      .then(()=>{console.log("[copyIds] clipboard API 成功");showCopyToast("已复制 "+n+" 个序号");})
-      .catch(err=>{console.warn("[copyIds] clipboard API 失败，使用 fallback:",err);execFallback();});
-  }else{execFallback();}
-}
-function getFiltered(){
-  const searchQ=(document.getElementById("imgSearch")||{value:""}).value.trim().toLowerCase();
-  let docs=allDocs;
-  if(activeFilter==="claimed")docs=docs.filter(d=>d.claimed_by&&d.status==="rejected");
-  else if(activeFilter==="rejected")docs=docs.filter(d=>d.status==="rejected"&&!d.claimed_by);
-  else if(activeFilter!=="all")docs=docs.filter(d=>d.status===activeFilter);
-  if(searchQ)docs=docs.filter(d=>(d.filename||"").toLowerCase().includes(searchQ));
-  return docs;
-}
-function renderGrid(){
-  const filtered=getFiltered();grid.innerHTML="";emptyHint.style.display=filtered.length===0?"block":"none";
-  const p=allDocs.filter(d=>d.status==="pending").length,cl=allDocs.filter(d=>d.claimed_by&&d.status==="rejected").length,a=allDocs.filter(d=>d.status==="approved").length,r=allDocs.filter(d=>d.status==="rejected"&&!d.claimed_by).length;
-  statsBar.textContent="共 "+allDocs.length+" 张 | 待审 "+p+" | 认领 "+cl+" | 通过 "+a+" | 打回 "+r;
-  filtered.forEach(item=>{
-    const wrap=document.createElement("div");
-    wrap.className="card-wrap"+(selectModeOn?" select-mode":"")+(selectedIds.has(item.id)?" selected":"");
-    if(item.claimed_by){
-      const pin=document.createElement("div");pin.className="claim-pin";pin.textContent="我来改！ "+item.claimed_by;wrap.appendChild(pin);
-    }
-    const sel=document.createElement("label");sel.className="card-sel";
-    const cb=document.createElement("input");cb.type="checkbox";cb.checked=selectedIds.has(item.id);
-    sel.appendChild(cb);wrap.appendChild(sel);
-    const card=document.createElement("div");card.className="card";
-    const ist=itemStatus(item);
-    card.innerHTML='<img src="'+imgThumb(item.url)+'" alt="" loading="lazy"/><div class="info"><span class="badge badge-'+ist+'">'+statusLabel(ist)+'</span><div class="filename">'+(item.filename||"图片")+'</div><div style="font-size:.72rem;color:#888;margin-top:2px">'+(item.replaced_by||item.uploader||"")+'</div>'+(item.status==="rejected"&&item.reject_reason?'<div class="reject-reason">'+item.reject_reason+'</div>':'')+'</div>';
-    wrap.appendChild(card);
-    cb.addEventListener("change",e=>{e.stopPropagation();if(cb.checked)selectedIds.add(item.id);else selectedIds.delete(item.id);wrap.classList.toggle("selected",cb.checked);updateBatchCount();});
-    cb.addEventListener("click",e=>e.stopPropagation());
-    card.addEventListener("click",()=>{if(selectModeOn){cb.checked=!cb.checked;cb.dispatchEvent(new Event("change"));return;}openModal(item,filtered);});
-    grid.appendChild(wrap);
-  });
-  if(currentView==="table")renderTable();
-}
-function setView(v){
-  currentView=v;
-  document.getElementById("grid").style.display=v==="grid"?"grid":"none";
-  document.getElementById("tableView").style.display=v==="table"?"block":"none";
-  document.getElementById("batchBar").style.display=v==="grid"?"":"none";
-  document.querySelectorAll(".view-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
-  if(v==="table")renderTable();else renderGrid();
-}
-function renderTable(){
-  const isEng=currentProjectName&&currentProjectName.includes("英语绘本");
-  const thead=document.querySelector("#statusTable thead tr");
-  const stColors={approved:{bg:"#d1e7dd",fg:"#0f5132"},rejected:{bg:"#f8d7da",fg:"#842029"},claimed:{bg:"#fff3e0",fg:"#e65100"},pending:{bg:"#fff3cd",fg:"#856404"},none:{bg:"#f0f2f5",fg:"#aaa"}};
-  if(isEng){
-    thead.innerHTML="<th>分镜</th><th>文件名</th><th>上传人</th><th>状态</th>";
-    const tbody=document.getElementById("statusTbody");tbody.innerHTML="";
-    const searchQ=(document.getElementById("imgSearch")||{value:""}).value.trim().toLowerCase();
-    const books={};
-    getFiltered().forEach(item=>{
-      const p=parseImgName(item.filename);
-      const book=p.book||"未知书名";
-      if(!books[book])books[book]=[];
-      books[book].push({item,scene:p.scene});
-    });
-    const sortedBooks=Object.keys(books).sort((a,b)=>a.localeCompare(b,"en"));
-    let shown=0;
-    sortedBooks.forEach(book=>{
-      const frames=books[book].sort((a,b)=>a.scene-b.scene);
-      const hdr=document.createElement("tr");hdr.className="book-header";
-      hdr.innerHTML='<td colspan="4">📖 '+book+' <span style="opacity:.65;font-weight:400;font-size:.8rem">('+frames.length+' 张)</span></td>';
-      tbody.appendChild(hdr);
-      frames.forEach(({item,scene})=>{
-        const ist=itemStatus(item);const c=stColors[ist]||stColors.none;
-        const sceneLabel=scene===-1?"封面":scene===99999?"封底":"("+scene+")";
-        const tr=document.createElement("tr");
-        tr.innerHTML='<td style="color:#888;font-size:.8rem;white-space:nowrap">'+sceneLabel+'</td><td style="font-size:.78rem;color:#555;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(item.filename||"")+'">'+(item.filename||"")+'</td><td style="font-size:.75rem;color:#888">'+(item.replaced_by||item.uploader||"")+'</td><td><span class="st-badge" style="background:'+c.bg+';color:'+c.fg+'">'+statusLabel(ist)+'</span></td>';
-        tr.style.cursor="pointer";tr.addEventListener("click",()=>openModal(item,frames.map(f=>f.item)));
-        tbody.appendChild(tr);shown++;
-      });
-    });
-    statsBar.textContent="共显示 "+shown+" 张 / "+sortedBooks.length+" 本";
-  }else if(currentProjectName&&currentProjectName.includes("英语单词卡片")){
-    thead.innerHTML="<th>序号<button type=\"button\" data-action=\"copy-ids\" title=\"复制所有序号\" style=\"margin-left:6px;padding:2px 6px;border:1px solid #c8d3e8;background:#eaf2ff;color:#1a73e8;border-radius:4px;cursor:pointer;font-size:.7rem;vertical-align:middle;line-height:1.4\">📋 复制</button></th><th>关键词</th><th>中文</th><th>12pt</th><th>18pt</th><th>25px</th><th>状态</th>";
-    const tbody=document.getElementById("statusTbody");tbody.innerHTML="";
-    const searchQ=(document.getElementById("imgSearch")||{value:""}).value.trim().toLowerCase();
-    const docMap={};
-    const kwToId={};
-    Object.keys(WORD_MAP).forEach(id=>{const k=(WORD_MAP[id].kw||"").toLowerCase();if(k&&!kwToId[k])kwToId[k]=id;});
-    allDocs.forEach(d=>{
-      const fn=(d.filename||"").replace(/\.[^.]+$/,"").replace(/^.*[/\\]/,"");
-      const m=fn.match(/^(\d{4})/);
-      let id=null;
-      if(m&&WORD_MAP[m[1]])id=m[1];
-      else{
-        const kw=fn.split(/[_\-\s]/)[0].toLowerCase();
-        if(kwToId[kw])id=kwToId[kw];
+  const container = document.getElementById('terminal-demo');
+  let li = 0;
+  function showNext(){
+    if(li >= lines.length) return;
+    const row = lines[li++];
+    const span = document.createElement('span');
+    span.className = 't-line';
+    if(row.t==='prompt'){
+      span.innerHTML = `<span class="t-prompt">${row.v}</span>`;
+      const next = lines[li];
+      if(next && next.t==='cmd'){
+        span.innerHTML += `<span class="t-cmd">${next.v}</span>`;
+        li++;
       }
-      if(id){if(!docMap[id])docMap[id]=[];docMap[id].push(d);}
-    });
-    let shown=0;
-    Object.keys(WORD_MAP).sort().forEach(id=>{
-      const row=WORD_MAP[id];
-      const docs=docMap[id]||[];
-      const ist=docs.length===0?"none":docs.every(d=>itemStatus(d)==="approved")?"approved":docs.some(d=>itemStatus(d)==="rejected"&&!d.claimed_by)?"rejected":docs.some(d=>itemStatus(d)==="claimed")?"claimed":docs.some(d=>d.status==="pending")?"pending":"none";
-      if(activeFilter!=="all"&&activeFilter!==ist)return;
-      if(searchQ&&!id.includes(searchQ)&&!row.kw.toLowerCase().includes(searchQ)&&!row.zh.includes(searchQ))return;
-      const c=stColors[ist]||stColors.none;
-      const stText=ist==="none"?"未上传":statusLabel(ist);
-      const tr=document.createElement("tr");
-      tr.innerHTML="<td style=\"color:#888;font-size:.8rem\">"+id+"</td><td style=\"font-weight:700\">"+row.kw+"</td><td style=\"font-size:.78rem;color:#555\">"+row.zh+"</td><td style=\"text-align:center\">"+(row.i12?"✓":"")+"</td><td style=\"text-align:center\">"+(row.i18?"✓":"")+"</td><td style=\"text-align:center\">"+(row.i25?"✓":"")+"</td><td><span class=\"st-badge\" style=\"background:"+c.bg+";color:"+c.fg+"\">"+stText+"</span></td>";
-      if(docs.length){tr.style.cursor="pointer";tr.addEventListener("click",()=>openModal(docs[0],docs));}
-      tbody.appendChild(tr);shown++;
-    });
-    statsBar.textContent="共显示 "+shown+" 条";
-    return;
-  }else{
-    thead.innerHTML="<th>序号<button type=\"button\" data-action=\"copy-ids\" title=\"复制所有序号\" style=\"margin-left:6px;padding:2px 6px;border:1px solid #c8d3e8;background:#eaf2ff;color:#1a73e8;border-radius:4px;cursor:pointer;font-size:.7rem;vertical-align:middle;line-height:1.4\">📋 复制</button></th><th>关键词</th><th>造句</th><th>状态</th><th>上传人</th>";
-    const tbody=document.getElementById("statusTbody");tbody.innerHTML="";
-    const docMap={};
-    allDocs.forEach(d=>{const key=(d.filename||"").replace(/\.[^.]+$/,"").replace(/^.*[/\\]/,"");docMap[key]=d;});
-    const searchQ=(document.getElementById("imgSearch")||{value:""}).value.trim().toLowerCase();
-    let shown=0;
-    const sentenceSource=(currentProjectMeta&&currentProjectMeta.table)||SENTENCE_MAP;
-    Object.keys(sentenceSource).sort().forEach(key=>{
-      const item=docMap[key];const row=sentenceSource[key];
-      const ist=item?itemStatus(item):"none";
-      if(activeFilter!=="all"&&activeFilter!==ist)return;
-      if(searchQ&&!key.includes(searchQ)&&!row.kw.includes(searchQ)&&!(item&&(item.filename||"").toLowerCase().includes(searchQ)))return;
-      const c=stColors[ist]||stColors.none;
-      const stText=ist==="none"?"未上传":statusLabel(ist);
-      const tr=document.createElement("tr");
-      tr.innerHTML='<td style="color:#888;font-size:.8rem">'+key+'</td><td style="font-weight:700">'+row.kw+'</td><td style="font-size:.78rem;color:#555;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+row.s+'">'+row.s+'</td><td><span class="st-badge" style="background:'+c.bg+';color:'+c.fg+'">'+stText+'</span></td><td style="font-size:.75rem;color:#888">'+(item?(item.replaced_by||item.uploader||""):"")+'</td>';
-      if(item){tr.style.cursor="pointer";tr.addEventListener("click",()=>openModal(item,allDocs));}
-      tbody.appendChild(tr);shown++;
-    });
-    statsBar.textContent="共显示 "+shown+" 条";
+    } else if(row.t==='sep')   { span.className='t-line t-out'; span.textContent=row.v; }
+    else if(row.t==='ok')   { span.className='t-line t-ok';   span.textContent=row.v; }
+    else if(row.t==='warn') { span.className='t-line t-warn'; span.textContent=row.v; }
+    else if(row.t==='info') { span.className='t-line t-info'; span.textContent=row.v; }
+    else                    { span.className='t-line t-out';  span.textContent=row.v; }
+    container.appendChild(span);
+    setTimeout(showNext, row.t==='out'&&row.v==='' ? 100 : row.t==='cmd' ? 600 : 120);
   }
-}
-document.addEventListener("click",function(e){
-  const t=e.target.closest('[data-action="copy-ids"]');
-  if(t){e.preventDefault();e.stopPropagation();console.log("[copy-ids] 点击事件触发");copyIds();}
-});
-document.querySelectorAll(".view-btn").forEach(btn=>btn.addEventListener("click",()=>setView(btn.dataset.view)));
-document.querySelectorAll(".filter-bar button[data-filter]").forEach(btn=>{btn.addEventListener("click",()=>{document.querySelectorAll(".filter-bar button[data-filter]").forEach(b=>b.classList.remove("active"));btn.classList.add("active");activeFilter=btn.dataset.filter;if(currentView==="table")renderTable();else renderGrid();});});
-document.getElementById("chkSelectMode").addEventListener("change",e=>{selectModeOn=e.target.checked;if(!selectModeOn){selectedIds.clear();document.getElementById("chkSelectAll").checked=!1;}renderGrid();updateBatchCount();});
-document.getElementById("chkSelectAll").addEventListener("change",e=>{if(e.target.checked)getFiltered().forEach(i=>selectedIds.add(i.id));else selectedIds.clear();renderGrid();updateBatchCount();});
-document.getElementById("btnBatchDownload").addEventListener("click",async()=>{
-  if(!selectedIds.size){alert("请先勾选图片");return;}
-  try{
-    const JSZip=(await import("https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm")).default;
-    const zip=new JSZip();
-    for(const id of selectedIds){
-      const item=allDocs.find(d=>d.id===id);if(!item)continue;
-      const r=await fetch(item.url);const b=await r.blob();
-      zip.file(item.filename||id+".png",b);
-    }
-    const blob=await zip.generateAsync({type:"blob"});
-    const a=document.createElement("a");const u=URL.createObjectURL(blob);a.href=u;a.download="picreview_"+Date.now()+".zip";a.click();URL.revokeObjectURL(u);
-  }catch(err){alert("打包失败："+err.message);}
-});
-document.getElementById("btnBatchDelete").addEventListener("click",async()=>{
-  if(currentRole!=="uploader")return;
-  if(!selectedIds.size){alert("请先勾选图片");return;}
-  if(!confirm("确定删除选中的 "+selectedIds.size+" 张？"))return;
-  for(const id of[...selectedIds])await sb.from("images").delete().eq("id",id);
-  selectedIds.clear();renderGrid();updateBatchCount();
-});
+  setTimeout(showNext, 800);
+})();
 
-// 弹窗
-const modal=document.getElementById("modal"),modalImg=document.getElementById("modalImg"),modalFilename=document.getElementById("modalFilename"),modalUploader=document.getElementById("modalUploader"),commentInput=document.getElementById("commentInput"),commentsList=document.getElementById("commentsList"),btnApprove=document.getElementById("btnApprove"),btnReject=document.getElementById("btnReject"),btnDelete=document.getElementById("btnDelete"),modalClose=document.getElementById("modalClose"),replaceSection=document.getElementById("replaceSection"),replaceInput=document.getElementById("replaceInput"),replaceBtn=document.getElementById("replaceBtn"),replaceStatus=document.getElementById("replaceStatus"),btnPrev=document.getElementById("btnPrev"),btnNext=document.getElementById("btnNext"),navCounter=document.getElementById("navCounter"),modalClaimPin=document.getElementById("modalClaimPin"),btnClaim=document.getElementById("btnClaim"),btnUnclaim=document.getElementById("btnUnclaim"),btnRename=document.getElementById("btnRename");
-let selectedTags=[],currentDocId=null,currentList=[],currentIndex=-1;
-function openModal(item,list){currentList=list||getFiltered();currentIndex=currentList.findIndex(d=>d.id===item.id);loadItem(item);modal.classList.add("open");}
-function loadItem(item){
-  currentDocId=item.id;selectedTags=[];modalImg.src=imgMid(item.url);modalFilename.textContent=item.filename||"图片";
-  btnRename.style.display=currentRole==="uploader"?"inline":"none";
-  const modalSentence=document.getElementById("modalSentence");
-  const fnKey=(item.filename||"").replace(/\.[^.]+$/,"").replace(/^.*[/\\]/,"");
-  const csvRow=(currentProjectMeta&&currentProjectMeta.table&&currentProjectMeta.table[fnKey])||SENTENCE_MAP[fnKey];
-  if(csvRow){modalSentence.textContent="关键词："+csvRow.kw+"　｜　造句："+csvRow.s;modalSentence.style.display="block";}
-  else{modalSentence.style.display="none";}
-  modalUploader.textContent="上传人："+(item.replaced_by||item.uploader||"—")+"  |  状态："+statusLabel(itemStatus(item))+(item.claimed_by?"  |  认领："+item.claimed_by:"");
-  commentInput.value="";replaceStatus.textContent="";commentInput.style.border="";
-  document.querySelectorAll(".tag").forEach(t=>t.classList.remove("selected"));
-  if(item.claimed_by){modalClaimPin.textContent="我来改！ "+item.claimed_by;modalClaimPin.classList.add("show");}
-  else{modalClaimPin.textContent="";modalClaimPin.classList.remove("show");}
-  if(currentRole==="reviewer"&&item.status==="rejected"){
-    btnClaim.textContent=item.claimed_by?"抢夺认领":"我来改！";
-    btnClaim.style.display="inline-block";
-    btnUnclaim.style.display=item.claimed_by?"inline-block":"none";
-  }else{btnClaim.style.display="none";btnUnclaim.style.display="none";}
-  commentsList.innerHTML="";
-  (item.comments||[]).slice().reverse().forEach(c=>{const div=document.createElement("div");div.className="comment-item";const claimMark=c.type==="claim"?' <span style="color:#e65100;font-weight:700">[认领]</span>':"";div.innerHTML='<div class="meta">'+c.user+" · "+fmt(c.time)+claimMark+(c.action==="approved"?" ✅":"")+(c.action==="rejected"?" ❌":"")+'</div>'+(c.text||"")+(c.tags&&c.tags.length?'<div style="margin-top:3px">'+c.tags.map(t=>'<span class="badge badge-pending">'+t+'</span>').join(" ")+'</div>':"");commentsList.appendChild(div);});
-  replaceSection.style.display=(currentRole==="uploader"&&item.status==="rejected")?"block":"none";
-  btnPrev.disabled=currentIndex<=0;btnNext.disabled=currentIndex>=currentList.length-1;
-  navCounter.textContent=(currentIndex+1)+" / "+currentList.length;
+/* ── Config builder ─────────────────────────────────────────────────── */
+function h(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function buildConfig(){
+  const g1 = document.getElementById('f-game1').value;
+  const g2 = document.getElementById('f-game2').value;
+  const airoot = document.getElementById('f-airoot').value || 'E:\\AI';
+  const ailetter = document.getElementById('f-ailetter').value;
+  const minsz = document.getElementById('f-minsz').value || '1';
+  const bl = document.getElementById('f-blacklist').value
+    .split(',').map(s=>s.trim()).filter(Boolean);
+
+  const gameTargets = g2 ? `@('${g1}', '${g2}')` : `@('${g1}')`;
+  const blStr = bl.map(b=>`'${b}'`).join(', ');
+
+  return {
+    raw: `@{
+    GameTargets      = ${gameTargets}
+    AIRoot           = '${airoot}'
+    AIDriveLetter    = '${ailetter}'
+    GameMinSizeGB    = ${minsz}
+    LauncherPatterns = @(
+        '*\\Steam\\steamapps\\common'
+        '*\\Epic Games'
+        '*\\GOG Galaxy\\Games'
+        '*\\Riot Games'
+        '*\\Battle.net'
+        '*\\Ubisoft\\Ubisoft Game Launcher\\games'
+        '*\\EA Games'
+        '*\\Origin Games'
+        '*\\XboxGames'
+        '*\\Blizzard Entertainment'
+    )
+    GameWhitelist    = @()
+    GameBlacklist    = @(${blStr})
+    ModelExtensions  = @('.safetensors', '.gguf', '.ckpt', '.pt', '.pth',
+                          '.bin', '.onnx', '.tflite', '.pb', '.h5', '.mlmodel')
+    DatasetExtensions = @('.parquet', '.arrow', '.jsonl', '.tfrecord',
+                           '.npz', '.npy', '.csv', '.tsv')
+    DatasetDirKeywords = @('dataset', 'datasets', 'corpus', 'corpora', 'train',
+                            'training_data', 'finetune', 'fine-tune')
+    DocExtensions    = @('.pdf', '.epub', '.md', '.docx', '.txt', '.rst', '.html')
+    DocMinCount      = 50
+    SaveRoots        = @(
+        '%USERPROFILE%\\Documents\\My Games'
+        '%USERPROFILE%\\Documents\\Saved Games'
+        '%USERPROFILE%\\Saved Games'
+        '%LOCALAPPDATA%\\Packages'
+        '%APPDATA%\\Roaming'
+        '%LOCALAPPDATA%'
+    )
+}`,
+    g1, g2, airoot, ailetter, minsz, blStr, gameTargets
+  };
 }
-function navigate(dir){const ni=currentIndex+dir;if(ni<0||ni>=currentList.length)return;currentIndex=ni;loadItem(currentList[ni]);}
-btnPrev.addEventListener("click",()=>navigate(-1));
-btnNext.addEventListener("click",()=>navigate(1));
-document.addEventListener("keydown",e=>{if(!modal.classList.contains("open"))return;if(e.key==="ArrowLeft")navigate(-1);if(e.key==="ArrowRight")navigate(1);if(e.key==="Escape")closeModal();});
-modalClose.addEventListener("click",closeModal);
-modal.addEventListener("click",e=>{if(e.target===modal)closeModal();});
-function closeModal(){modal.classList.remove("open");currentDocId=null;}
-document.querySelectorAll(".tag").forEach(t=>{t.addEventListener("click",()=>{t.classList.toggle("selected");const tag=t.dataset.tag;if(selectedTags.includes(tag))selectedTags=selectedTags.filter(x=>x!==tag);else selectedTags.push(tag);});});
-btnClaim.addEventListener("click",async()=>{
-  if(!currentDocId||currentRole!=="reviewer")return;
-  const item=allDocs.find(d=>d.id===currentDocId);if(!item)return;
-  if(item.claimed_by&&item.claimed_by!==currentUser){if(!confirm("已由「"+item.claimed_by+"」认领，确定抢夺？"))return;}
-  const nc=[...(item.comments||[])];nc.push({user:currentUser,text:"我来改！",type:"claim",time:new Date().toISOString()});
-  const now=new Date().toISOString();
-  await sb.from("images").update({claimed_by:currentUser,claimed_at:now,comments:nc,updated_at:now}).eq("id",currentDocId);
-  loadItem({...item,claimed_by:currentUser,claimed_at:now,comments:nc});
-});
-btnUnclaim.addEventListener("click",async()=>{
-  if(!currentDocId||currentRole!=="reviewer")return;
-  const item=allDocs.find(d=>d.id===currentDocId);if(!item||!item.claimed_by)return;
-  const now=new Date().toISOString();
-  await sb.from("images").update({claimed_by:null,claimed_at:null,updated_at:now}).eq("id",currentDocId);
-  loadItem({...item,claimed_by:null,claimed_at:null});
-});
-btnApprove.addEventListener("click",async()=>{if(currentDocId)await submitReview("approved","");});
-btnReject.addEventListener("click",async()=>{if(!currentDocId)return;const reason=commentInput.value.trim();if(!reason&&!selectedTags.length){commentInput.style.border="2px solid red";commentInput.placeholder="打回时请填写原因或选择标签";return;}commentInput.style.border="";await submitReview("rejected",reason||selectedTags.join("、"));});
-async function submitReview(status,rejectReason){
-  const comment=commentInput.value.trim();const item=allDocs.find(d=>d.id===currentDocId);const nc=[...(item?.comments||[])];
-  if(comment||selectedTags.length)nc.push({user:currentUser,text:comment,tags:[...selectedTags],time:new Date().toISOString(),action:status});
-  await sb.from("images").update({status,reject_reason:status==="rejected"?rejectReason:"",tags:selectedTags,comments:nc,reviewed_by:currentUser,updated_at:new Date().toISOString()}).eq("id",currentDocId);
-  closeModal();
+
+function renderConfig(){
+  const c = buildConfig();
+  const raw = c.raw;
+  // Simple syntax highlighting
+  const html = raw
+    .replace(/(@\{|\})/g, '<span class="ck">$1</span>')
+    .replace(/(GameTargets|AIRoot|AIDriveLetter|GameMinSizeGB|LauncherPatterns|GameWhitelist|GameBlacklist|ModelExtensions|DatasetExtensions|DatasetDirKeywords|DocExtensions|DocMinCount|SaveRoots)/g,
+             '<span class="ck">$1</span>')
+    .replace(/'([^']*)'/g, '<span class="cs">\'$1\'</span>')
+    .replace(/(\d+(?:\.\d+)?)\n/g, '<span class="cv">$1</span>\n')
+    .replace(/#.*/g, '<span class="cc">$&</span>');
+  document.getElementById('config-output').innerHTML = html;
 }
-btnDelete.addEventListener("click",async()=>{if(!currentDocId)return;if(!confirm("确定删除？"))return;await sb.from("images").delete().eq("id",currentDocId);closeModal();});
-replaceBtn.addEventListener("click",async()=>{
-  const f=replaceInput.files[0];if(!f){replaceStatus.textContent="请先选择文件";return;}
-  replaceStatus.textContent="正在上传...";
-  const hash=await hashFile(f);
-  let j;try{j=await cldUpload(f);}catch(err){replaceStatus.textContent="失败："+err.message;return;}
-  await sb.from("images").update({url:j.secure_url,storage_path:j.public_id,file_hash:hash,status:"pending",tags:[],updated_at:new Date().toISOString(),uploader:currentUser,replaced_by:currentUser,claimed_by:null,claimed_at:null}).eq("id",currentDocId);
-  replaceStatus.textContent="替换成功！";replaceInput.value="";setTimeout(closeModal,1200);
+
+function downloadConfig(){
+  const c = buildConfig();
+  const blob = new Blob([c.raw], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'config.psd1';
+  a.click();
+}
+
+['f-game1','f-game2','f-airoot','f-ailetter','f-minsz','f-blacklist'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderConfig);
+  document.getElementById(id).addEventListener('change', renderConfig);
 });
-btnRename.addEventListener("click",async()=>{
-  if(!currentDocId||currentRole!=="uploader")return;
-  const item=allDocs.find(d=>d.id===currentDocId);if(!item)return;
-  const oldName=item.filename||"";
-  const newName=(prompt("修改文件名：",oldName)||"").trim();
-  if(!newName||newName===oldName)return;
-  await sb.from("images").update({filename:newName,updated_at:new Date().toISOString()}).eq("id",currentDocId);
-  item.filename=newName;
-  loadItem(item);
-});
-function fmt(iso){if(!iso)return"";const d=new Date(iso);return(d.getMonth()+1)+"/"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
+renderConfig();
+
+/* ── GitHub link updater（占位，用户填入实际 repo URL 后替换）─────── */
+// 把下面的 URL 换成你的真实 GitHub 仓库地址
+const REPO_URL = 'https://github.com/willowding/pcorganizer';
+document.getElementById('nav-gh-link').href = REPO_URL;
+document.getElementById('footer-gh-link').href = REPO_URL;
 </script>
-<div id="copyToast"></div>
 </body>
 </html>
