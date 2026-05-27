@@ -6,25 +6,24 @@
 <title>PC Organizer · 智能文件整理工具</title>
 <style>
   :root {
-    --bg:       #0a0a0a;
-    --bg2:      #0f0f0f;
-    --bg3:      #141414;
-    --border:   #1a2a1a;
-    --green:    #00ff41;
-    --green-dim:#00c832;
-    --green-dark:#003a0e;
-    --green-glow:#00ff4122;
-    --text:     #c8ffc8;
-    --text-dim: #4a7a4a;
-    --text-muted:#2a4a2a;
-    --warn:     #ffb800;
-    --red:      #ff4141;
+    --bg:        #080d09;
+    --bg2:       #0c1210;
+    --bg3:       #111a13;
+    --border:    #1c2e1f;
+    --green:     #5eea8a;
+    --green-dim: #3db865;
+    --green-dark: #0d2416;
+    --green-glow: #5eea8a14;
+    --text:      #d4eed8;
+    --text-dim:  #5a8060;
+    --text-muted:#2a4030;
+    --warn:      #e0a840;
+    --red:       #e05555;
     --mono: 'Courier New', 'Consolas', monospace;
     --sans: 'Segoe UI', system-ui, sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { scroll-behavior: smooth; }
 
   body {
@@ -36,28 +35,20 @@
     overflow-x: hidden;
   }
 
-  /* ── Scanline overlay ─────────────────────────────────────────────── */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.06) 2px,
-      rgba(0,0,0,0.06) 4px
-    );
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);
     pointer-events: none;
     z-index: 9999;
   }
 
-  /* ── Nav ──────────────────────────────────────────────────────────── */
   nav {
     position: fixed;
     top: 0; left: 0; right: 0;
     height: 52px;
-    background: rgba(10,10,10,0.92);
+    background: rgba(8,13,9,0.94);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -72,19 +63,11 @@
     color: var(--green);
     letter-spacing: 0.05em;
     text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
   }
   .nav-logo::before { content: '> '; color: var(--text-dim); }
-  nav a {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-size: 0.85rem;
-    transition: color 0.15s;
-  }
+  nav a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; transition: color 0.15s; }
   nav a:hover { color: var(--green); }
-  .nav-right { margin-left: auto; display: flex; gap: 1rem; align-items: center; }
+  .nav-right { margin-left: auto; }
   .nav-gh {
     border: 1px solid var(--border);
     padding: 0.3rem 0.9rem;
@@ -96,7 +79,6 @@
   }
   .nav-gh:hover { border-color: var(--green); background: var(--green-glow); }
 
-  /* ── Hero ─────────────────────────────────────────────────────────── */
   .hero {
     min-height: 100vh;
     display: flex;
@@ -124,7 +106,7 @@
     margin-bottom: 1.5rem;
     letter-spacing: -0.02em;
   }
-  .hero h1 .cursor-blink {
+  .cursor-blink {
     display: inline-block;
     width: 3px;
     height: 1em;
@@ -134,14 +116,7 @@
     animation: blink 1s step-end infinite;
   }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-  .hero-sub {
-    font-size: 1.1rem;
-    color: var(--text);
-    max-width: 600px;
-    margin-bottom: 2.5rem;
-    opacity: 0.8;
-  }
+  .hero-sub { font-size: 1.05rem; color: var(--text); max-width: 600px; margin-bottom: 2.5rem; opacity: 0.8; }
   .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
 
   .btn {
@@ -155,26 +130,17 @@
     border: none;
     display: inline-block;
   }
-  .btn-primary {
-    background: var(--green);
-    color: #000;
-    font-weight: 700;
-  }
-  .btn-primary:hover { background: #00dd38; }
-  .btn-outline {
-    background: transparent;
-    border: 1px solid var(--green-dim);
-    color: var(--green);
-  }
+  .btn-primary { background: var(--green); color: #000; font-weight: 700; }
+  .btn-primary:hover { background: #4fd478; }
+  .btn-outline { background: transparent; border: 1px solid var(--green-dim); color: var(--green); }
   .btn-outline:hover { background: var(--green-glow); border-color: var(--green); }
 
-  /* ── Terminal demo ────────────────────────────────────────────────── */
   .terminal-wrap {
     margin-top: 3.5rem;
     border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
-    background: #050505;
+    background: #040804;
   }
   .terminal-bar {
     background: var(--bg3);
@@ -185,37 +151,18 @@
     gap: 0.5rem;
   }
   .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .dot-r { background: #ff5f57; }
-  .dot-y { background: #febc2e; }
-  .dot-g { background: #28c840; }
-  .terminal-title {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .terminal-body {
-    padding: 1.2rem 1.5rem;
-    font-family: var(--mono);
-    font-size: 0.82rem;
-    line-height: 1.8;
-    min-height: 200px;
-  }
+  .dot-r { background: #ff5f57; } .dot-y { background: #febc2e; } .dot-g { background: #28c840; }
+  .terminal-title { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); margin: 0 auto; }
+  .terminal-body { padding: 1.2rem 1.5rem; font-family: var(--mono); font-size: 0.82rem; line-height: 1.8; min-height: 200px; }
   .t-prompt { color: var(--green); }
   .t-cmd    { color: var(--text); }
   .t-out    { color: var(--text-dim); }
   .t-ok     { color: var(--green); }
   .t-warn   { color: var(--warn); }
-  .t-info   { color: #5af; }
+  .t-info   { color: #5ab8d4; }
   .t-line   { display: block; }
 
-  /* ── Section layout ───────────────────────────────────────────────── */
-  section {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 5rem 2rem;
-  }
+  section { max-width: 1000px; margin: 0 auto; padding: 5rem 2rem; }
   .section-label {
     font-family: var(--mono);
     font-size: 0.7rem;
@@ -225,20 +172,11 @@
     margin-bottom: 0.6rem;
   }
   .section-label::before { content: '// '; color: var(--text-muted); }
-  h2 {
-    font-size: 1.7rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 2.5rem;
-  }
+  h2 { font-size: 1.7rem; font-weight: 600; color: var(--text); margin-bottom: 2.5rem; }
   h2 em { color: var(--green); font-style: normal; }
 
-  /* ── Features grid ────────────────────────────────────────────────── */
   .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-  .feature-card {
-    background: var(--bg2);
-    padding: 1.8rem;
-  }
+  .feature-card { background: var(--bg2); padding: 1.8rem; transition: background 0.15s; }
   .feature-card:hover { background: var(--bg3); }
   .feature-icon {
     font-family: var(--mono);
@@ -250,247 +188,104 @@
     margin-bottom: 1rem;
     letter-spacing: 0.05em;
   }
-  .feature-card h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 0.5rem;
-  }
+  .feature-card h3 { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
   .feature-card p { font-size: 0.875rem; color: var(--text-dim); line-height: 1.65; }
 
-  /* ── How-to steps ─────────────────────────────────────────────────── */
-  .steps { display: flex; flex-direction: column; gap: 0; }
-  .step {
-    display: grid;
-    grid-template-columns: 52px 1fr;
-    gap: 1.5rem;
-    padding: 1.8rem 0;
-    border-bottom: 1px solid var(--border);
-  }
+  .steps { display: flex; flex-direction: column; }
+  .step { display: grid; grid-template-columns: 52px 1fr; gap: 1.5rem; padding: 1.8rem 0; border-bottom: 1px solid var(--border); }
   .step:last-child { border-bottom: none; }
-  .step-num {
-    font-family: var(--mono);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--green-dark);
-    line-height: 1;
-    padding-top: 0.2rem;
-  }
+  .step-num { font-family: var(--mono); font-size: 1.4rem; font-weight: 700; color: var(--green-dark); line-height: 1; padding-top: 0.2rem; }
   .step.active .step-num { color: var(--green); }
   .step-content h3 { font-size: 1rem; color: var(--text); margin-bottom: 0.4rem; }
-  .step-content p  { font-size: 0.875rem; color: var(--text-dim); margin-bottom: 0.6rem; }
+  .step-content p { font-size: 0.875rem; color: var(--text-dim); margin-bottom: 0.6rem; }
   .code-inline {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    color: var(--green);
-    padding: 0.15rem 0.45rem;
-    border-radius: 2px;
+    font-family: var(--mono); font-size: 0.8rem;
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--green); padding: 0.15rem 0.45rem; border-radius: 2px;
   }
   pre.code-block {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    background: #050505;
-    border: 1px solid var(--border);
+    font-family: var(--mono); font-size: 0.8rem;
+    background: #040804; border: 1px solid var(--border);
     border-left: 2px solid var(--green-dim);
-    padding: 0.9rem 1.2rem;
-    margin-top: 0.6rem;
-    overflow-x: auto;
-    color: var(--text);
-    line-height: 1.7;
+    padding: 0.9rem 1.2rem; margin-top: 0.6rem;
+    overflow-x: auto; color: var(--text); line-height: 1.7;
   }
   pre.code-block .c { color: var(--text-dim); }
 
-  /* ── Config builder ───────────────────────────────────────────────── */
   #config-section { border-top: 1px solid var(--border); }
-  .config-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-  }
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
   @media(max-width:700px){ .config-grid { grid-template-columns: 1fr; } }
   .config-form { display: flex; flex-direction: column; gap: 1.2rem; }
-  .field label {
-    display: block;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-    margin-bottom: 0.35rem;
-  }
+  .field label { display: block; font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 0.35rem; }
   .field input, .field select {
-    width: 100%;
-    background: #050505;
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 0.875rem;
-    padding: 0.55rem 0.8rem;
-    border-radius: 2px;
-    outline: none;
-    transition: border-color 0.15s;
+    width: 100%; background: #040804; border: 1px solid var(--border);
+    color: var(--text); font-family: var(--mono); font-size: 0.875rem;
+    padding: 0.55rem 0.8rem; border-radius: 2px; outline: none; transition: border-color 0.15s;
   }
   .field input:focus, .field select:focus { border-color: var(--green-dim); }
-  .field select option { background: #111; }
+  .field select option { background: #0c1210; }
   .field-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
 
-  .config-preview {
-    position: sticky;
-    top: 70px;
-    background: #050505;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-  }
+  .config-preview { position: sticky; top: 70px; background: #040804; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
   .config-preview-bar {
-    background: var(--bg3);
-    border-bottom: 1px solid var(--border);
-    padding: 0.5rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--text-dim);
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem; display: flex; align-items: center;
+    justify-content: space-between; font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim);
   }
-  #config-output {
-    padding: 1.2rem;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    line-height: 1.75;
-    color: var(--text);
-    min-height: 320px;
-    white-space: pre;
-    overflow-x: auto;
-  }
-  .ck  { color: #7ec8e3; }
-  .cv  { color: #c8ffc8; }
-  .cs  { color: #ffb87a; }
-  .cc  { color: var(--text-dim); }
+  #config-output { padding: 1.2rem; font-family: var(--mono); font-size: 0.78rem; line-height: 1.75; color: var(--text); min-height: 320px; white-space: pre; overflow-x: auto; }
+  .ck { color: #7ec8e3; } .cv { color: #c8ffc8; } .cs { color: #ffb87a; } .cc { color: var(--text-dim); }
   .btn-download {
-    background: var(--green);
-    color: #000;
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    font-weight: 700;
-    padding: 0.4rem 1rem;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s;
+    background: var(--green); color: #000; font-family: var(--mono);
+    font-size: 0.8rem; font-weight: 700; padding: 0.4rem 1rem;
+    border: none; cursor: pointer; transition: background 0.15s;
   }
-  .btn-download:hover { background: #00dd38; }
+  .btn-download:hover { background: #4fd478; }
 
-  /* ── Menu table ───────────────────────────────────────────────────── */
-  .menu-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--mono);
-    font-size: 0.85rem;
-    margin-top: 1rem;
-  }
-  .menu-table th {
-    text-align: left;
-    padding: 0.5rem 1rem;
-    background: var(--bg3);
-    color: var(--text-dim);
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-  }
-  .menu-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
+  .menu-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 0.85rem; margin-top: 1rem; }
+  .menu-table th { text-align: left; padding: 0.5rem 1rem; background: var(--bg3); color: var(--text-dim); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .menu-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
   .menu-table tr:last-child td { border-bottom: none; }
   .menu-table tr:hover td { background: var(--bg3); }
   .menu-key { color: var(--green); font-weight: 700; }
   .menu-desc { color: var(--text); }
   .menu-note { color: var(--text-dim); font-size: 0.78rem; }
-  .badge {
-    font-size: 0.65rem;
-    padding: 0.1rem 0.4rem;
-    border-radius: 2px;
-    vertical-align: middle;
-    margin-left: 0.4rem;
-  }
-  .badge-warn { background: #2a1a00; color: var(--warn); border: 1px solid #3a2a00; }
-  .badge-ok   { background: var(--green-dark); color: var(--green); border: 1px solid #005a1a; }
+  .badge { font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 2px; vertical-align: middle; margin-left: 0.4rem; }
+  .badge-warn { background: #2a1800; color: var(--warn); border: 1px solid #3a2a00; }
+  .badge-ok   { background: var(--green-dark); color: var(--green); border: 1px solid #1a4a28; }
 
-  /* ── AI drive section ─────────────────────────────────────────────── */
-  .phase-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 1rem; }
-  @media(max-width:600px){ .phase-cards { grid-template-columns: 1fr; } }
-  .phase-card { background: var(--bg2); padding: 1.6rem; }
-  .phase-title {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 0.8rem;
-  }
-  .phase-card h3 { font-size: 1rem; color: var(--text); margin-bottom: 0.7rem; }
-  .phase-card ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
-  .phase-card li { font-size: 0.85rem; color: var(--text-dim); padding-left: 1rem; position: relative; }
-  .phase-card li::before { content: '→'; position: absolute; left: 0; color: var(--green-dim); }
-
-  /* ── Footer ───────────────────────────────────────────────────────── */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 2rem;
-    text-align: center;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
+  footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); }
   footer a { color: var(--text-dim); text-decoration: none; }
   footer a:hover { color: var(--green); }
-
-  /* ── Divider ──────────────────────────────────────────────────────── */
-  .section-divider {
-    max-width: 1000px;
-    margin: 0 auto;
-    border: none;
-    border-top: 1px solid var(--border);
-  }
+  .section-divider { max-width: 1000px; margin: 0 auto; border: none; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
 
-<!-- ─── NAV ──────────────────────────────────────────────────────────── -->
 <nav>
   <a class="nav-logo" href="#">PC Organizer</a>
   <a href="#features">功能</a>
   <a href="#howto">使用</a>
   <a href="#config-section">配置生成器</a>
-  <a href="#ai-drive">AI 盘</a>
   <div class="nav-right">
-    <a class="nav-gh" href="https://github.com" target="_blank" id="nav-gh-link">[ GitHub ]</a>
+    <a class="nav-gh" href="https://github.com/willowding/pcorganizer" target="_blank" id="nav-gh-link">[ GitHub ]</a>
   </div>
 </nav>
 
-<!-- ─── HERO ──────────────────────────────────────────────────────────── -->
 <div style="max-width:900px;margin:0 auto;padding:0 2rem">
   <div class="hero">
     <div class="hero-label">Windows · PowerShell · <span>v1.0</span></div>
     <h1 id="hero-title"><span class="cursor-blink"></span></h1>
     <p class="hero-sub">
-      把游戏自动迁移到 SSD 和 E 盘，AI 资料智能归类，游戏存档跟着走。
-      原位建目录联接，Steam / Epic 无需任何改动。
+      扫描全盘游戏，按可用空间迁移到目标盘，存档跟随，原位建 NTFS Junction。
+      Steam / Epic / GOG 启动器路径不变，运行后无感知。
     </p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#howto">开始使用</a>
       <a class="btn btn-outline" href="#config-section">生成配置文件</a>
     </div>
-
-    <!-- Terminal demo -->
     <div class="terminal-wrap">
       <div class="terminal-bar">
-        <div class="dot dot-r"></div>
-        <div class="dot dot-y"></div>
-        <div class="dot dot-g"></div>
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
         <span class="terminal-title">Administrator: Windows PowerShell</span>
       </div>
       <div class="terminal-body" id="terminal-demo"></div>
@@ -500,20 +295,14 @@
 
 <hr class="section-divider">
 
-<!-- ─── FEATURES ─────────────────────────────────────────────────────── -->
 <section id="features">
   <div class="section-label">features</div>
-  <h2>一个工具，搞定所有整理</h2>
+  <h2>一个工具，搞定所有<em>整理</em></h2>
   <div class="features">
     <div class="feature-card">
       <div class="feature-icon">GAME_DETECT</div>
       <h3>智能游戏识别</h3>
       <p>自动扫描 Steam、Epic、GOG、暴雪、育碧等主流启动器路径，结合体积 + exe + 目录结构启发式识别，无漏报。</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">AI_CLASSIFY</div>
-      <h3>AI 资料分类归集</h3>
-      <p>按文件后缀（.safetensors .gguf .pt …）和目录名关键字，自动区分模型权重、训练数据集、知识库文档四个类别。</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">SAVE_SYNC</div>
@@ -523,7 +312,12 @@
     <div class="feature-card">
       <div class="feature-icon">JUNCTION</div>
       <h3>目录联接无感知</h3>
-      <p>文件搬走后在原位建 NTFS Junction，启动器、游戏内部的路径全部不变，零配置即用。</p>
+      <p>文件搬走后在原位建 NTFS Junction，启动器和游戏内部路径全部不变，零配置即用。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">AI_CLASSIFY</div>
+      <h3>资料分类归集</h3>
+      <p>按文件后缀（.safetensors .gguf .pt …）和目录名关键字，自动区分模型权重、训练数据集、知识库文档四个类别。</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">DRY_RUN</div>
@@ -540,7 +334,6 @@
 
 <hr class="section-divider">
 
-<!-- ─── HOW TO ──────────────────────────────────────────────────────── -->
 <section id="howto">
   <div class="section-label">how_to_use</div>
   <h2>三步开始<em>整理</em></h2>
@@ -549,11 +342,9 @@
       <div class="step-num">01</div>
       <div class="step-content">
         <h3>下载 &amp; 编辑配置</h3>
-        <p>把 PCOrganizer 文件夹复制到目标电脑，用文本编辑器打开 <span class="code-inline">config.psd1</span>，确认游戏迁移盘符和 AI 资料根目录。也可以用下方的配置生成器自动生成。</p>
+        <p>把 PCOrganizer 文件夹复制到目标电脑，用文本编辑器打开 <span class="code-inline">config.psd1</span>，填写游戏迁移目标盘和资料根目录。也可以用下方配置生成器直接下载。</p>
         <pre class="code-block"><span class="c"># config.psd1 关键项</span>
 GameTargets    = @('D:\Games', 'E:\Games')
-AIRoot         = 'E:\AI'
-AIDriveLetter  = 'F'
 GameMinSizeGB  = 1</pre>
       </div>
     </div>
@@ -562,7 +353,7 @@ GameMinSizeGB  = 1</pre>
       <div class="step-content">
         <h3>以管理员身份运行</h3>
         <p>右键 PowerShell → 以管理员身份运行，进入脚本目录执行（建 Junction 需要管理员权限）：</p>
-        <pre class="code-block"><span class="c"># 仅预览，不移动文件（推荐先跑这个）</span>
+        <pre class="code-block"><span class="c"># 仅预览，不移动文件</span>
 powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1"
 
 <span class="c"># 实际执行</span>
@@ -573,15 +364,15 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
       <div class="step-num">03</div>
       <div class="step-content">
         <h3>按菜单顺序操作</h3>
-        <p>推荐操作顺序：扫描 → 预览方案 → 确认无误 → 执行迁移。</p>
+        <p>推荐顺序：扫描 → 预览方案 → 确认无误 → 执行迁移。</p>
         <table class="menu-table">
           <thead><tr><th>选项</th><th>功能</th><th>说明</th></tr></thead>
           <tbody>
             <tr><td class="menu-key">1</td><td class="menu-desc">扫描磁盘 + 文件</td><td class="menu-note">生成 inventory_*.json</td></tr>
             <tr><td class="menu-key">2</td><td class="menu-desc">生成整理方案</td><td class="menu-note">dry-run，生成 plan_*.json</td></tr>
             <tr><td class="menu-key">3</td><td class="menu-desc">执行游戏迁移</td><td class="menu-note"><span class="badge badge-ok">存档跟随</span></td></tr>
-            <tr><td class="menu-key">4</td><td class="menu-desc">AI 资料归集</td><td class="menu-note">初始化 AI 盘 + 迁移</td></tr>
-            <tr><td class="menu-key">5</td><td class="menu-desc">升级 AI 盘为真分区</td><td class="menu-note"><span class="badge badge-warn">高危</span> 三次确认</td></tr>
+            <tr><td class="menu-key">4</td><td class="menu-desc">资料归集</td><td class="menu-note">初始化目标目录 + 迁移</td></tr>
+            <tr><td class="menu-key">5</td><td class="menu-desc">升级为真实分区</td><td class="menu-note"><span class="badge badge-warn">高危</span> 三次确认</td></tr>
             <tr><td class="menu-key">6</td><td class="menu-desc">回滚上一次操作</td><td class="menu-note">按日志反向恢复</td></tr>
           </tbody>
         </table>
@@ -592,7 +383,6 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
 
 <hr class="section-divider">
 
-<!-- ─── CONFIG BUILDER ────────────────────────────────────────────────── -->
 <section id="config-section">
   <div class="section-label">config_builder</div>
   <h2>在线生成 <em>config.psd1</em></h2>
@@ -619,12 +409,12 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
         </select>
       </div>
       <div class="field">
-        <label>AI 资料根目录</label>
+        <label>资料根目录</label>
         <input id="f-airoot" type="text" value="E:\AI" placeholder="E:\AI">
         <div class="field-hint">存放 models / datasets / docs / misc</div>
       </div>
       <div class="field">
-        <label>AI 虚拟盘盘符（subst 映射）</label>
+        <label>虚拟盘盘符（subst 映射）</label>
         <select id="f-ailetter">
           <option value="F" selected>F:</option>
           <option value="G">G:</option>
@@ -632,7 +422,6 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
           <option value="I">I:</option>
           <option value="Z">Z:</option>
         </select>
-        <div class="field-hint">该盘符会映射到 AI 根目录，确保目标机器上该盘符未被占用</div>
       </div>
       <div class="field">
         <label>游戏最小体积阈值 (GB)</label>
@@ -642,10 +431,8 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
       <div class="field">
         <label>游戏黑名单（逗号分隔，支持通配符）</label>
         <input id="f-blacklist" type="text" value="WindowsApps, Microsoft.*">
-        <div class="field-hint">这些目录名的游戏将被跳过</div>
       </div>
     </div>
-
     <div class="config-preview">
       <div class="config-preview-bar">
         <span>config.psd1</span>
@@ -656,59 +443,19 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
   </div>
 </section>
 
-<hr class="section-divider">
-
-<!-- ─── AI DRIVE ───────────────────────────────────────────────────── -->
-<section id="ai-drive">
-  <div class="section-label">ai_drive</div>
-  <h2>AI 盘<em>两阶段</em>方案</h2>
-  <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:1.5rem;max-width:600px">
-    没有空闲分区？没关系。先用虚拟盘顶着，等游戏搬走腾出空间再升级成真分区。
-  </p>
-  <div class="phase-cards">
-    <div class="phase-card">
-      <div class="phase-title">// 阶段一 · 立即可用</div>
-      <h3>subst 虚拟盘</h3>
-      <ul>
-        <li>在 E:\AI 下建 models / datasets / docs / misc</li>
-        <li>用 <code class="code-inline">subst F: E:\AI</code> 映射虚拟盘</li>
-        <li>写开机启动项，重启后自动恢复 F:</li>
-        <li>Ollama / ComfyUI / LM Studio 直接填 F:\models\xxx</li>
-      </ul>
-    </div>
-    <div class="phase-card">
-      <div class="phase-title">// 阶段二 · 真实分区</div>
-      <h3>压缩 E 盘新建分区</h3>
-      <ul>
-        <li>检查 E 盘可压缩空间是否足够</li>
-        <li>三次确认 → 压缩 E 盘 → 新建 NTFS 分区</li>
-        <li>自动把 E:\AI 内容迁移到新分区根目录</li>
-        <li>删除旧目录和 subst 开机项</li>
-      </ul>
-    </div>
-  </div>
-  <p style="color:var(--text-muted);font-family:var(--mono);font-size:0.75rem;margin-top:1rem">
-    // 阶段二操作前请先备份重要数据到外接存储
-  </p>
-</section>
-
-<!-- ─── FOOTER ─────────────────────────────────────────────────────── -->
 <footer>
   <span>PC Organizer · PowerShell 5.1+ · Windows 10/11 · NTFS</span>
   &nbsp;·&nbsp;
-  <a href="https://github.com" id="footer-gh-link">GitHub</a>
+  <a href="https://github.com/willowding/pcorganizer" id="footer-gh-link">GitHub</a>
   &nbsp;·&nbsp;
   <span>MIT License</span>
 </footer>
 
-<!-- ─── SCRIPTS ────────────────────────────────────────────────────── -->
 <script>
-/* ── Hero title typewriter ──────────────────────────────────────────── */
 (function(){
   const lines = ['PC 文件', '智能整理工具'];
   let full = lines.join('\n'), idx = 0;
   const el = document.getElementById('hero-title');
-  const cursor = el.querySelector('.cursor-blink');
   function tick(){
     if(idx <= full.length){
       const txt = full.slice(0,idx).replace('\n','<br>');
@@ -720,7 +467,6 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
   tick();
 })();
 
-/* ── Terminal demo typewriter ───────────────────────────────────────── */
 (function(){
   const lines = [
     {t:'prompt', v:'PS C:\\PCOrganizer> '},
@@ -736,7 +482,6 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
     {t:'out',    v:'  E:  (HDD) 1863.0 GB  剩余 890.3 GB'},
     {t:'out',    v:''},
     {t:'ok',     v:'识别到 23 个游戏目录，合计 387.4 GB'},
-    {t:'ok',     v:'识别到 6 个 AI 资料目录，合计 42.1 GB'},
     {t:'out',    v:''},
     {t:'ok',     v:'  ✓ Cyberpunk 2077 (68.3 GB)  [存档: 1 处]'},
     {t:'ok',     v:'  ✓ Elden Ring (44.7 GB)       [存档: 2 处]'},
@@ -744,7 +489,6 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
     {t:'out',    v:''},
     {t:'info',   v:'方案已保存: logs\\plan_20260527_102301.json'},
   ];
-
   const container = document.getElementById('terminal-demo');
   let li = 0;
   function showNext(){
@@ -755,11 +499,8 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
     if(row.t==='prompt'){
       span.innerHTML = `<span class="t-prompt">${row.v}</span>`;
       const next = lines[li];
-      if(next && next.t==='cmd'){
-        span.innerHTML += `<span class="t-cmd">${next.v}</span>`;
-        li++;
-      }
-    } else if(row.t==='sep')   { span.className='t-line t-out'; span.textContent=row.v; }
+      if(next && next.t==='cmd'){ span.innerHTML += `<span class="t-cmd">${next.v}</span>`; li++; }
+    } else if(row.t==='sep')  { span.className='t-line t-out';  span.textContent=row.v; }
     else if(row.t==='ok')   { span.className='t-line t-ok';   span.textContent=row.v; }
     else if(row.t==='warn') { span.className='t-line t-warn'; span.textContent=row.v; }
     else if(row.t==='info') { span.className='t-line t-info'; span.textContent=row.v; }
@@ -770,21 +511,15 @@ powershell -ExecutionPolicy Bypass -File ".\Organize-PC.ps1" -Apply</pre>
   setTimeout(showNext, 800);
 })();
 
-/* ── Config builder ─────────────────────────────────────────────────── */
-function h(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
 function buildConfig(){
   const g1 = document.getElementById('f-game1').value;
   const g2 = document.getElementById('f-game2').value;
   const airoot = document.getElementById('f-airoot').value || 'E:\\AI';
   const ailetter = document.getElementById('f-ailetter').value;
   const minsz = document.getElementById('f-minsz').value || '1';
-  const bl = document.getElementById('f-blacklist').value
-    .split(',').map(s=>s.trim()).filter(Boolean);
-
+  const bl = document.getElementById('f-blacklist').value.split(',').map(s=>s.trim()).filter(Boolean);
   const gameTargets = g2 ? `@('${g1}', '${g2}')` : `@('${g1}')`;
   const blStr = bl.map(b=>`'${b}'`).join(', ');
-
   return {
     raw: `@{
     GameTargets      = ${gameTargets}
@@ -821,19 +556,15 @@ function buildConfig(){
         '%APPDATA%\\Roaming'
         '%LOCALAPPDATA%'
     )
-}`,
-    g1, g2, airoot, ailetter, minsz, blStr, gameTargets
+}`
   };
 }
 
 function renderConfig(){
   const c = buildConfig();
-  const raw = c.raw;
-  // Simple syntax highlighting
-  const html = raw
+  const html = c.raw
     .replace(/(@\{|\})/g, '<span class="ck">$1</span>')
-    .replace(/(GameTargets|AIRoot|AIDriveLetter|GameMinSizeGB|LauncherPatterns|GameWhitelist|GameBlacklist|ModelExtensions|DatasetExtensions|DatasetDirKeywords|DocExtensions|DocMinCount|SaveRoots)/g,
-             '<span class="ck">$1</span>')
+    .replace(/(GameTargets|AIRoot|AIDriveLetter|GameMinSizeGB|LauncherPatterns|GameWhitelist|GameBlacklist|ModelExtensions|DatasetExtensions|DatasetDirKeywords|DocExtensions|DocMinCount|SaveRoots)/g,'<span class="ck">$1</span>')
     .replace(/'([^']*)'/g, '<span class="cs">\'$1\'</span>')
     .replace(/(\d+(?:\.\d+)?)\n/g, '<span class="cv">$1</span>\n')
     .replace(/#.*/g, '<span class="cc">$&</span>');
@@ -854,12 +585,6 @@ function downloadConfig(){
   document.getElementById(id).addEventListener('change', renderConfig);
 });
 renderConfig();
-
-/* ── GitHub link updater（占位，用户填入实际 repo URL 后替换）─────── */
-// 把下面的 URL 换成你的真实 GitHub 仓库地址
-const REPO_URL = 'https://github.com/willowding/pcorganizer';
-document.getElementById('nav-gh-link').href = REPO_URL;
-document.getElementById('footer-gh-link').href = REPO_URL;
 </script>
 </body>
 </html>
